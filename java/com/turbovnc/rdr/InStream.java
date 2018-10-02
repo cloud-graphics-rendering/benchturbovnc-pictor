@@ -76,10 +76,24 @@ public abstract class InStream {
     int b3 = b[ptr++] & 0xff;
     return b0 << 24 | b1 << 16 | b2 << 8 | b3;
   }
+  public final long readS64() {
+    check(8, 1, true);
+    long b0 = b[ptr++];
+    long b1 = b[ptr++] & 0xffL;
+    long b2 = b[ptr++] & 0xffL;
+    long b3 = b[ptr++] & 0xffL;
+    long b4 = b[ptr++] & 0xffL;
+    long b5 = b[ptr++] & 0xffL;
+    long b6 = b[ptr++] & 0xffL;
+    long b7 = b[ptr++] & 0xffL;
+    
+    return b0 << 56 | b1 << 48 | b2 << 40 | b3 << 32 | b4 << 24 | b5 << 16 | b6 << 8 | b7;
+  }
 
   public final int readU8()  { return readS8()  & 0xff;  }
   public final int readU16() { return readS16() & 0xffff; }
   public final int readU32() { return readS32() & 0xffffffff; }
+  public final long readU64() { return readS64() & 0xffffffffffffffffL; }
 
   // readString() reads a string - a U32 length followed by the data.
 

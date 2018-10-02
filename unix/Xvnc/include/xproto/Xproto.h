@@ -176,7 +176,7 @@ SOFTWARE.
 #define sz_xPolyPointReq 12
 #define sz_xPolySegmentReq 12
 #define sz_xFillPolyReq 16
-#define sz_xPutImageReq 24
+#define sz_xPutImageReq sizeof(xPutImageReq)
 #define sz_xGetImageReq 20
 #define sz_xPolyTextReq 16
 #define sz_xImageTextReq 16

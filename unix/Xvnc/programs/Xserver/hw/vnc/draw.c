@@ -639,7 +639,6 @@ static void rfbPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 
     (*pGC->ops->PutImage) (pDrawable, pGC, depth, x, y, w, h, leftPad, format,
                            pBits);
-
     SCHEDULE_FB_UPDATE(pDrawable->pScreen, prfb);
 
     GC_OP_EPILOGUE(pGC);

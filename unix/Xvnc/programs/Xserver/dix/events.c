@@ -2023,7 +2023,6 @@ TryClientEvents(ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
             client->smart_priority++;
         SetCriticalOutputPending();
     }
-
     WriteEventsToClient(client, count, pEvents);
 #ifdef DEBUG_EVENTS
     ErrorF("[dix]  delivered\n");
@@ -2098,10 +2097,12 @@ DeliverToWindowOwner(DeviceIntPtr dev, WindowPtr win,
                                       count, win->eventMask,
                                       filter, grab);
 
-        if (attempt > 0)
+        if (attempt > 0){
             return EVENT_DELIVERED;
-        if (attempt < 0)
+        }
+        if (attempt < 0){
             return EVENT_REJECTED;
+        }
     }
 
     return EVENT_NOT_DELIVERED;

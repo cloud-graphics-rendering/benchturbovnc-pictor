@@ -41,6 +41,8 @@ import java.lang.reflect.*;
 import javax.swing.*;
 import java.util.*;
 
+import java.time.Instant;
+
 import com.turbovnc.rdr.*;
 import com.turbovnc.rfb.*;
 import com.turbovnc.rfb.Point;
@@ -66,6 +68,7 @@ public class CConn extends CConnection implements UserPasswdGetter,
   static final double getTime() {
     return (double)System.nanoTime() / 1.0e9;
   }
+
 
   // RFB thread
   public CConn(VncViewer viewer_, Socket sock_) {
@@ -1743,7 +1746,11 @@ public class CConn extends CConnection implements UserPasswdGetter,
     if (state() != RFBSTATE_NORMAL || shuttingDown || benchmark)
       return;
     try {
-      writer().writeKeyEvent(keysym, down);
+      long sendL_nanoTime = System.nanoTime();
+      long sendL_miliTime = System.currentTimeMillis();
+      //long sendL_nanoTime3 = Instant.now().toEpochMilli();
+      //writer().writeKeyEvent(keysym, down);
+      writer().writeKeyEvent(keysym, down, sendL_nanoTime, sendL_miliTime);
     } catch (Exception e) {
       if (!shuttingDown) {
         vlog.error("Error writing key event:");

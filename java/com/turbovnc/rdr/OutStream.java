@@ -63,10 +63,22 @@ public abstract class OutStream {
     b[ptr++] = (byte)(u >> 8);
     b[ptr++] = (byte)u;
   }
+  public final void writeU64(long u) {
+    check(8);
+    b[ptr++] = (byte)(u >> 56);
+    b[ptr++] = (byte)(u >> 48);
+    b[ptr++] = (byte)(u >> 40);
+    b[ptr++] = (byte)(u >> 32);
+    b[ptr++] = (byte)(u >> 24);
+    b[ptr++] = (byte)(u >> 16);
+    b[ptr++] = (byte)(u >> 8);
+    b[ptr++] = (byte)u;
+  }
 
   public final void writeS8(int s)  { writeU8(s); }
   public final void writeS16(int s) { writeU16(s); }
   public final void writeS32(int s) { writeU32(s); }
+  public final void writeS64(long s) { writeU64(s); }
 
   // writeString() writes a string - a U32 length followed by the data.
 

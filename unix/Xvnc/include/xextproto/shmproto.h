@@ -112,7 +112,7 @@ typedef struct _ShmPutImage {
     ShmSeg	shmseg B32;
     CARD32	offset B32;
 } xShmPutImageReq;
-#define sz_xShmPutImageReq	40
+#define sz_xShmPutImageReq	sizeof(xShmPutImageReq)
 
 typedef struct _ShmGetImage {
     CARD8	reqType;	/* always ShmReqCode */

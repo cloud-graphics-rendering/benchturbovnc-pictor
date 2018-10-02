@@ -120,7 +120,8 @@ static DevPrivateKeyRec shmPixmapPrivateKeyRec;
 #define shmPixmapPrivateKey (&shmPixmapPrivateKeyRec)
 static ShmFuncs miFuncs = { NULL, NULL };
 static ShmFuncs fbFuncs = { fbShmCreatePixmap, NULL };
-
+unsigned int t2p_microTime_back = 0;
+unsigned int t2p_microTime_back_clear = 0;
 #define ShmGetScreenPriv(s) ((ShmScrPrivateRec *)dixLookupPrivate(&(s)->devPrivates, shmScrPrivateKey))
 
 #define VERIFY_SHMSEG(shmseg,shmdesc,client) \
@@ -519,7 +520,6 @@ ProcShmPutImage(ClientPtr client)
     ShmDescPtr shmdesc;
 
     REQUEST(xShmPutImageReq);
-
     REQUEST_SIZE_MATCH(xShmPutImageReq);
     VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, FALSE, shmdesc, client);
@@ -581,18 +581,26 @@ ProcShmPutImage(ClientPtr client)
            ((stuff->srcY == 0) &&
             (stuff->srcHeight == stuff->totalHeight))))) &&
         ((stuff->srcX + stuff->srcWidth) == stuff->totalWidth))
+      {
         (*pGC->ops->PutImage) (pDraw, pGC, stuff->depth,
                                stuff->dstX, stuff->dstY,
                                stuff->totalWidth, stuff->srcHeight,
                                stuff->srcX, stuff->format,
                                shmdesc->addr + stuff->offset +
                                (stuff->srcY * length));
-    else
+        if((shmdesc->addr[0] & 0xff)==0xde && (shmdesc->addr[1] & 0xff)==0xad && (shmdesc->addr[2] & 0xff)==0xbe && (shmdesc->addr[3] & 0xff)==0xef){
+           t2p_microTime_back = ((shmdesc->addr[4] & 0xff) << 24 | (shmdesc->addr[5] & 0xff) << 16 | (shmdesc->addr[6] & 0xff) << 8 | (shmdesc->addr[7] & 0xff)) & 0xffffffff;
+           t2p_microTime_back_clear = 0xdeadbeef;
+           //fprintf(stderr, "t2p_microTime_back: %d\n", t2p_microTime_back);
+        }
+      }
+    else{
         doShmPutImage(pDraw, pGC, stuff->depth, stuff->format,
                       stuff->totalWidth, stuff->totalHeight,
                       stuff->srcX, stuff->srcY,
                       stuff->srcWidth, stuff->srcHeight,
                       stuff->dstX, stuff->dstY, shmdesc->addr + stuff->offset);
+    }
 
     if (stuff->sendEvent) {
         xShmCompletionEvent ev = {

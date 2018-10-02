@@ -164,7 +164,6 @@ static int nextFreeClientID;    /* always MIN free client ID */
 static int nClients;            /* number of authorized clients */
 
 CallbackListPtr ClientStateCallback;
-
 /* dispatchException & isItTimeToYield must be declared volatile since they
  * are modified by signal handlers - otherwise optimizer may assume it doesn't
  * need to actually check value in memory when used and may miss changes from
@@ -456,6 +455,7 @@ Dispatch(void)
 
                 client->sequence++;
                 client->majorOp = ((xReq *) client->requestBuffer)->reqType;
+
                 client->minorOp = 0;
                 if (client->majorOp >= EXTENSION_BASE) {
                     ExtensionEntry *ext = GetExtensionEntry(client->majorOp);

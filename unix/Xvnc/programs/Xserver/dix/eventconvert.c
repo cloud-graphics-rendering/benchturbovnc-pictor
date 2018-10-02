@@ -51,6 +51,10 @@
 #include "xkbsrv.h"
 #include "inpututils.h"
 
+extern unsigned int delta_send_microTime;
+extern unsigned int t1p_microTime;
+extern unsigned int t2p_microTime;
+
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator * xv);
 static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
@@ -122,6 +126,29 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         /* fallthrough */
     case ET_ButtonPress:
     case ET_ButtonRelease:
+    {
+        DeviceEvent *e = &event->device_event;
+
+        if (e->detail.key > 0xFF) {
+            ret = BadMatch;
+            goto out;
+        }
+
+        core = calloc(1, sizeof(*core));
+        if (!core)
+            return BadAlloc;
+        count = 1;
+        core->u.u.type = e->type - ET_KeyPress + KeyPress;
+        core->u.u.detail = e->detail.key & 0xFF;
+        core->u.keyButtonPointer.time = e->time;
+        core->u.keyButtonPointer.rootX = e->root_x;
+        core->u.keyButtonPointer.rootY = e->root_y;
+        core->u.keyButtonPointer.state = e->corestate;
+        core->u.keyButtonPointer.root = e->root;
+        EventSetKeyRepeatFlag(core, (e->type == ET_KeyPress && e->key_repeat));
+        ret = Success;
+    }
+        break;
     case ET_KeyPress:
     case ET_KeyRelease:
     {
@@ -138,7 +165,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         count = 1;
         core->u.u.type = e->type - ET_KeyPress + KeyPress;
         core->u.u.detail = e->detail.key & 0xFF;
-        core->u.keyButtonPointer.time = e->time;
+        core->u.keyButtonPointer.time  = t2p_microTime & 0xffffffff;
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
         core->u.keyButtonPointer.state = e->corestate;

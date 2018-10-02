@@ -128,13 +128,30 @@ public class CMsgReaderV3 extends CMsgReader {
       }
 
       nUpdateRectsLeft--;
-      if (nUpdateRectsLeft == 0) handler.framebufferUpdateEnd();
+      if (nUpdateRectsLeft == 0) {
+		handler.framebufferUpdateEnd();
+		recvL_mTime = System.currentTimeMillis() * 1000;
+		double backDelay = (recvL_mTime - sendL_uTime) * 1e-3;
+                if(handle_uTime != 0xdeadbeefL)
+		    System.out.println((float)handle_uTime/1000.0 + ", " + backDelay);
+      }
     }
   }
 
   void readFramebufferUpdate() {
     is.skip(1);
     nUpdateRectsLeft = is.readU16();
+    is.skip(4);
+    sendL_uTime = is.readU64();
+    long handle_uTime_tmp = is.readU64();
+    //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
+     
+    if(((handle_uTime_tmp >> 32) & 0xffffffffL) == 0xdeadbeefL){
+	handle_uTime = handle_uTime_tmp & 0xffffffffL;
+    }else{
+	handle_uTime = 0xdeadbeefL;
+    }
+    
     handler.framebufferUpdateStart();
   }
 
@@ -256,6 +273,9 @@ public class CMsgReaderV3 extends CMsgReader {
   }
 
   int nUpdateRectsLeft;
+  long sendL_uTime;
+  long recvL_mTime;
+  long handle_uTime;
 
   static LogWriter vlog = new LogWriter("CMsgReaderV3");
 }

@@ -618,10 +618,15 @@ typedef struct _rfbFramebufferUpdateMsg {
     CARD8 type;                 /* always rfbFramebufferUpdate */
     CARD8 pad;
     CARD16 nRects;
+    CARD32 pad2;
+    CARD64 sendL_uTime;
+    CARD64 sendHandle_microTime;
     /* followed by nRects rectangles */
 } rfbFramebufferUpdateMsg;
 
-#define sz_rfbFramebufferUpdateMsg 4
+#define sz_rfbFramebufferUpdateMsg sizeof(struct _rfbFramebufferUpdateMsg)
+//#define sz_rfbFramebufferUpdateMsg 8
+//#define sz_rfbFramebufferUpdateMsg 4
 
 /*
  * Each rectangle of pixel data consists of a header describing the position
@@ -1256,10 +1261,12 @@ typedef struct _rfbKeyEventMsg {
     CARD8 down;                 /* true if down (press), false if up */
     CARD16 pad;
     CARD32 key;                 /* key is specified as an X keysym */
+    CARD64 sendL_nanoTime;	/* record the time of send from client based on start time */
+    CARD64 sendL_miliTime;	/* record the time of send from client based on Epoch time */
 } rfbKeyEventMsg;
 
-#define sz_rfbKeyEventMsg 8
-
+#define sz_rfbKeyEventMsg sizeof(struct _rfbKeyEventMsg)
+//now, 16 bytes
 
 /*-----------------------------------------------------------------------------
  * PointerEvent - mouse/pen move and/or button press.

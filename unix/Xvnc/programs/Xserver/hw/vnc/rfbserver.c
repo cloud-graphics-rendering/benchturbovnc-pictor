@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -79,6 +80,11 @@ static Bool rfbSendCopyRegion(rfbClientPtr cl, RegionPtr reg, int dx, int dy);
 static Bool rfbSendLastRectMarker(rfbClientPtr cl);
 Bool rfbSendDesktopSize(rfbClientPtr cl);
 
+unsigned int delta_send_microTime = 0;
+unsigned int t1p_microTime = 0;
+unsigned int t2p_microTime = 0;
+extern unsigned int t2p_microTime_back;
+extern unsigned int t2p_microTime_back_clear;
 
 /*
  * Session capture
@@ -134,6 +140,30 @@ double gettime(void)
     struct timeval __tv;
     gettimeofday(&__tv, (struct timezone *)NULL);
     return((double)__tv.tv_sec + (double)__tv.tv_usec * 0.000001);
+}
+
+//long gettime_InuSec(void)
+unsigned long gettime_microTime(void)
+{
+    struct timeval __tv;
+    gettimeofday(&__tv, (struct timezone *)NULL);
+    return(__tv.tv_sec * 1e6 + __tv.tv_usec);
+}
+
+
+unsigned int gettime_microPart(void)
+{
+    struct timeval __tv;
+    gettimeofday(&__tv, (struct timezone *)NULL);
+    return(__tv.tv_usec);
+}
+
+unsigned long gettime_nanoTime(void)
+{
+    struct timespec __tv;
+    clock_gettime(CLOCK_MONOTONIC,&__tv);
+    //clock_gettime(CLOCK_REALTIME,&__tv);
+    return(__tv.tv_sec * 1e9 + __tv.tv_nsec);
 }
 
 
@@ -1223,7 +1253,16 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
         cl->rfbKeyEventsRcvd++;
 
         READ(((char *)&msg) + 1, sz_rfbKeyEventMsg - 1)
-
+        long t1_microTime = Swap64IfLE(msg.ke.sendL_miliTime) * 1000;
+        long t2_microTime = gettime_microTime();
+        delta_send_microTime = (unsigned long)((t2_microTime - t1_microTime)<0 ? 0 : (t2_microTime - t1_microTime));
+ 
+	t1p_microTime = (unsigned long)(Swap64IfLE(msg.ke.sendL_nanoTime));
+        t2p_microTime = (unsigned int)gettime_microPart();
+        //t2p_nanoTime = (unsigned long)gettime_nanoTime();
+        //printf("Gettime:%lf, sendTime:%lf, msec, keysym: %p, keyaction:%s\n", getNanoTimeinSecond()*1000, Swap64IfLE(msg.ke.sendL_nanoTime)*0.000001, (KeySym)Swap32IfLE(msg.ke.key), msg.ke.down ? "down" : "up");
+        fprintf(stderr,"%lf\n", gettime()*1000 - Swap64IfLE(msg.ke.sendL_miliTime));
+        //fprintf(stderr,"Gettime:%lf, sendTime:%ld, msec, keysym: %p, keyaction:%s\n", gettime()*1000, Swap64IfLE(msg.ke.sendL_miliTime), (KeySym)Swap32IfLE(msg.ke.key), msg.ke.down ? "down" : "up");
         if (!rfbViewOnly && !cl->viewOnly) {
             KeyEvent((KeySym)Swap32IfLE(msg.ke.key), msg.ke.down);
         }
@@ -2112,6 +2151,16 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     } else {
         fu->nRects = 0xFFFF;
     }
+    if(t2p_microTime_back_clear == 0xdeadbeef){
+        t2p_microTime_back_clear = 0;
+        unsigned int t3p_microTime = gettime_microPart();
+    	int delta2 = (t3p_microTime - t2p_microTime_back);
+        int handle_microTime = delta2>0?delta2:delta2+0x100000000L;
+        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L | (handle_microTime & 0xffffffffL));
+    	//fprintf(stderr, "delta22:%ld, handle:%p\n", handle_microTime, fu->sendHandle_microTime);
+    }
+    
+    fu->sendL_uTime = Swap64IfLE(gettime_microTime());
     ublen = sz_rfbFramebufferUpdateMsg;
 
     cl->captureEnable = TRUE;
@@ -2521,8 +2570,8 @@ Bool rfbSendUpdateBuf(rfbClientPtr cl)
         fprintf(stderr, "%02x ", ((unsigned char *)updateBuf)[i]);
     }
     fprintf(stderr, "\n");
+    fprintf(stderr, "\n");
     */
-
     if (ublen > 0 && WriteExact(cl, updateBuf, ublen) < 0) {
         rfbLogPerror("rfbSendUpdateBuf: write");
         rfbCloseClient(cl);
@@ -2669,6 +2718,7 @@ Bool rfbSendDesktopSize(rfbClientPtr cl)
 
     fu.type = rfbFramebufferUpdate;
     fu.nRects = Swap16IfLE(1);
+    fu.sendL_uTime = Swap64IfLE(gettime_microTime());
     if (WriteExact(cl, (char *)&fu, sz_rfbFramebufferUpdateMsg) < 0) {
         rfbLogPerror("rfbSendDesktopSize: write");
         rfbCloseClient(cl);

@@ -373,7 +373,7 @@ typedef struct {
   CARD16 width B16;
   CARD16 height B16;
 } xvPutImageReq;
-#define sz_xvPutImageReq 40
+#define sz_xvPutImageReq sizeof(xvPutImageReq)
 
 typedef struct {
   CARD8 reqType;
@@ -399,7 +399,7 @@ typedef struct {
   CARD8 pad1;
   CARD16 pad2 B16;
 } xvShmPutImageReq;
-#define sz_xvShmPutImageReq 52
+#define sz_xvShmPutImageReq sizeof(xvShmPutImageReq)
 
 typedef struct {
   CARD8 reqType;

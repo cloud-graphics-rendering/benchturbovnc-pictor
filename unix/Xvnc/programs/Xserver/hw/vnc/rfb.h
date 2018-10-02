@@ -500,11 +500,22 @@ typedef struct {
                    (((l) & 0x0000ff00) << 8)  |  \
                    ((l) << 24))
 
+#define Swap64(l) (((l) >> 56) |  \
+                   (((l) & 0x00ff000000000000) >> 40)  |  \
+                   (((l) & 0x0000ff0000000000) >> 24)  |  \
+                   (((l) & 0x000000ff00000000) >> 8)  |  \
+                   (((l) & 0x00000000ff000000) << 8)  |  \
+                   (((l) & 0x0000000000ff0000) << 24)  |  \
+                   (((l) & 0x000000000000ff00) << 40)  |  \
+                   ((l) << 56))
+
 static const int rfbEndianTest = 1;
 
 #define Swap16IfLE(s) (*(const char *)&rfbEndianTest ? Swap16(s) : (s))
 
 #define Swap32IfLE(l) (*(const char *)&rfbEndianTest ? Swap32(l) : (l))
+
+#define Swap64IfLE(l) (*(const char *)&rfbEndianTest ? Swap64(l) : (l))
 
 
 /*
