@@ -11,7 +11,7 @@
 typedef struct timeTrack{
     int eventID;
     pid_t pid;
-    long array[TIME_COLUM]
+    long array[TIME_COLUM];
 }timeTrack;
 
 #endif
