@@ -125,6 +125,7 @@ CallbackListPtr RootWindowFinalizeCallback = NULL;
 int
 dix_main(int argc, char *argv[], char *envp[])
 {
+    //create shared memory for time tracking
     int i;
     HWEventQueueType alwaysCheckForInput[2];
 
