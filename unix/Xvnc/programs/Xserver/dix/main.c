@@ -118,6 +118,12 @@ Equipment Corporation.
 #include "dpmsproc.h"
 #endif
 
+#ifndef STOP_BENCH
+#include "timetrack.h"
+timeTrack* timeTracker;
+#endif
+
+
 extern void Dispatch(void);
 
 CallbackListPtr RootWindowFinalizeCallback = NULL;
@@ -143,6 +149,17 @@ dix_main(int argc, char *argv[], char *envp[])
 
     alwaysCheckForInput[0] = 0;
     alwaysCheckForInput[1] = 1;
+    #ifndef STOP_BENCH
+    key_t key = ftok("shmfile",65);
+    int shmid = shmget(key, NUM_ROW*sizeof(timeTrack), 0666|IPC_CREAT);
+    timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
+    fprintf(stderr, "creating shared memory for time tracking in VNC server\n");
+    timeTracker->eventID = 0xdeadbeef;
+    timeTracker->pid     = 0xbeefdead;
+    for(i=0;i<TIME_COLUM;i++){
+        timeTracker->array[i] = i;
+    }
+    #endif
     while (1) {
         serverGeneration++;
         ScreenSaverTime = defaultScreenSaverTime;
@@ -368,5 +385,9 @@ dix_main(int argc, char *argv[], char *envp[])
         free(ConnectionInfo);
         ConnectionInfo = NULL;
     }
+    #ifndef STOP_BENCH
+    shmdt(timeTracker);
+    shmctl(shmid, IPC_RMID, NULL);
+    #endif
     return 0;
 }
