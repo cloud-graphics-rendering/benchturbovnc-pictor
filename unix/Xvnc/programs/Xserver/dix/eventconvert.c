@@ -50,10 +50,15 @@
 #include "xiquerydevice.h"
 #include "xkbsrv.h"
 #include "inpututils.h"
+#include "timetrack.h"
 
 extern unsigned int delta_send_microTime;
 extern unsigned int t1p_microTime;
-extern unsigned int t2p_microTime;
+extern unsigned int nsTinput_recv;
+extern unsigned int keyboard_eventID;
+
+extern timeTrack* timeTracker;
+extern int timeheader;
 
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator * xv);
@@ -165,7 +170,14 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         count = 1;
         core->u.u.type = e->type - ET_KeyPress + KeyPress;
         core->u.u.detail = e->detail.key & 0xFF;
-        core->u.keyButtonPointer.time  = t2p_microTime & 0xffffffff;
+        #ifndef STOP_BENCH
+        core->u.keyButtonPointer.time  = keyboard_eventID & 0xffffffff;
+        //timeTracker[timeheader].array[3] = (long)gettime_nanoTime();//nsTenvent_send
+        //fprintf(stderr, "array[3]: %ld\n", timeTracker[timeheader].array[3]);
+        //fprintf(stderr, "timeheader reuse: %d\n", timeheader);
+        #else
+        core->u.keyButtonPointer.time  = e->time;
+        #endif
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
         core->u.keyButtonPointer.state = e->corestate;

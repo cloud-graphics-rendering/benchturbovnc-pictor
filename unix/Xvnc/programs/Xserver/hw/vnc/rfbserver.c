@@ -42,6 +42,7 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include "windowstr.h"
+#include "timetrack.h"
 #include "rfb.h"
 #include "sprite.h"
 
@@ -80,11 +81,19 @@ static Bool rfbSendCopyRegion(rfbClientPtr cl, RegionPtr reg, int dx, int dy);
 static Bool rfbSendLastRectMarker(rfbClientPtr cl);
 Bool rfbSendDesktopSize(rfbClientPtr cl);
 
-unsigned int delta_send_microTime = 0;
-unsigned int t1p_microTime = 0;
-unsigned int t2p_microTime = 0;
+#ifndef STOP_BENCH
+long usTinput_send_delta = 0;
+long nsTinput_send = 0;
+long nsTinput_recv = 0;
+int  keyboard_eventID = 0;
+int  timeheader = 0;
+
+extern timeTrack* timeTracker;
+extern int appreqID;
+extern int timeTrackerItem;
 extern unsigned int t2p_microTime_back;
 extern unsigned int t2p_microTime_back_clear;
+#endif
 
 /*
  * Session capture
@@ -143,7 +152,7 @@ double gettime(void)
 }
 
 //long gettime_InuSec(void)
-unsigned long gettime_microTime(void)
+long gettime_microTime(void)
 {
     struct timeval __tv;
     gettimeofday(&__tv, (struct timezone *)NULL);
@@ -1253,16 +1262,26 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
         cl->rfbKeyEventsRcvd++;
 
         READ(((char *)&msg) + 1, sz_rfbKeyEventMsg - 1)
-        long t1_microTime = Swap64IfLE(msg.ke.sendL_miliTime) * 1000;
+        #ifndef STOP_BENCH
+        long t1_microTime = Swap64IfLE(msg.ke.sendL_microTime);
         long t2_microTime = gettime_microTime();
-        delta_send_microTime = (unsigned long)((t2_microTime - t1_microTime)<0 ? 0 : (t2_microTime - t1_microTime));
+        usTinput_send_delta = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
+        //fprintf(stderr,"t1: %ld, t2: %ld, delta1: %ld, delta2: %ld\n", t1_microTime, t2_microTime, gettime_microTime() - Swap64IfLE(msg.ke.sendL_microTime), usTinput_send_delta);
+        fprintf(stderr,"delta for send inputs(ms): %ld\n", usTinput_send_delta);
  
-	t1p_microTime = (unsigned long)(Swap64IfLE(msg.ke.sendL_nanoTime));
-        t2p_microTime = (unsigned int)gettime_microPart();
-        //t2p_nanoTime = (unsigned long)gettime_nanoTime();
-        //printf("Gettime:%lf, sendTime:%lf, msec, keysym: %p, keyaction:%s\n", getNanoTimeinSecond()*1000, Swap64IfLE(msg.ke.sendL_nanoTime)*0.000001, (KeySym)Swap32IfLE(msg.ke.key), msg.ke.down ? "down" : "up");
-        fprintf(stderr,"%lf\n", gettime()*1000 - Swap64IfLE(msg.ke.sendL_miliTime));
-        //fprintf(stderr,"Gettime:%lf, sendTime:%ld, msec, keysym: %p, keyaction:%s\n", gettime()*1000, Swap64IfLE(msg.ke.sendL_miliTime), (KeySym)Swap32IfLE(msg.ke.key), msg.ke.down ? "down" : "up");
+	nsTinput_send = (long)Swap64IfLE(msg.ke.sendL_nanoTime);
+        nsTinput_recv = (long)gettime_nanoTime();
+        keyboard_eventID++;
+        //static int  timeheader = 0;
+        timeheader++;
+        timeheader = (timeheader==10)?0:timeheader;
+        //fprintf(stderr,"head: %d\n", timeheader);
+        timeTracker[timeheader].eventID = keyboard_eventID;
+        timeTracker[timeheader].pid = keyboard_eventID;
+        timeTracker[timeheader].array[0] = nsTinput_send;
+        timeTracker[timeheader].array[1] = usTinput_send_delta;
+        timeTracker[timeheader].array[2] = nsTinput_recv;
+        #endif
         if (!rfbViewOnly && !cl->viewOnly) {
             KeyEvent((KeySym)Swap32IfLE(msg.ke.key), msg.ke.down);
         }
@@ -1984,6 +2003,21 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     /*
      * Now send the update.
      */
+    if(t2p_microTime_back_clear == 0xdeadbeef){
+        t2p_microTime_back_clear = 0xdeadbeee;
+        timeTracker[timeTrackerItem].array[8] = (long)gettime_nanoTime();//nsTupdatebuffer_start
+        fprintf(stderr, "         beforeencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
+        //unsigned int t3p_microTime = gettime_microPart();
+    	//int delta2 = (t3p_microTime - t2p_microTime_back);
+        unsigned int t1p_nanoTime = (unsigned int)(timeTracker[timeTrackerItem].array[0] & 0xffffffffL);
+        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L | t1p_nanoTime);
+        //fu->sendHandle_microTime = 0;
+    	fprintf(stderr, "start update, t1p:%ld\n", timeTracker[timeTrackerItem].array[0]);
+    }else{
+        fu->sendHandle_microTime = Swap64IfLE(0x0);
+    }
+    
+    fu->sendL_uTime = Swap64IfLE(gettime_microTime());
 
     if (REGION_NUM_RECTS(updateRegion) > rfbCombineRect) {
         RegionRec combinedUpdateRegion;
@@ -2003,7 +2037,6 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
                updateRegion->extents.y2 - updateRegion->extents.y1);
         ClipToScreen(pScreen, updateRegion);
     }
-
     if (cl->compareFB) {
         updateRegion = &cl->ifRegion;
         if (rfbInterframeDebug)
@@ -2151,16 +2184,8 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     } else {
         fu->nRects = 0xFFFF;
     }
-    if(t2p_microTime_back_clear == 0xdeadbeef){
-        t2p_microTime_back_clear = 0;
-        unsigned int t3p_microTime = gettime_microPart();
-    	int delta2 = (t3p_microTime - t2p_microTime_back);
-        int handle_microTime = delta2>0?delta2:delta2+0x100000000L;
-        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L | (handle_microTime & 0xffffffffL));
-    	//fprintf(stderr, "delta22:%ld, handle:%p\n", handle_microTime, fu->sendHandle_microTime);
-    }
     
-    fu->sendL_uTime = Swap64IfLE(gettime_microTime());
+    //fu->sendL_uTime = Swap64IfLE(gettime_microTime());
     ublen = sz_rfbFramebufferUpdateMsg;
 
     cl->captureEnable = TRUE;
@@ -2255,9 +2280,18 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
         REGION_UNINIT(pScreen, updateRegion);
         REGION_NULL(pScreen, updateRegion);
     }
+    
+
+    if(t2p_microTime_back_clear == 0xdeadbeee){
+        timeTracker[timeTrackerItem].array[9] = (long)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
+        t2p_microTime_back_clear = 0xdeadbeec;
+        fprintf(stderr, "         encoding nanoSec:%ld\n", timeTracker[timeTrackerItem].array[9]);
+        fprintf(stderr, "         afterencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
+    }
 
     if (nUpdateRegionRects == 0xFFFF && !rfbSendLastRectMarker(cl))
         goto abort;
+
 
     if (!rfbSendUpdateBuf(cl))
         goto abort;
@@ -2432,6 +2466,7 @@ static Bool rfbSendCopyRegion(rfbClientPtr cl, RegionPtr reg, int dx, int dy)
             rect.r.w = Swap16IfLE(w);
             rect.r.h = Swap16IfLE(h);
             rect.encoding = Swap32IfLE(rfbEncodingCopyRect);
+            //rect.usRect_sendTime = Swap64IfLE(gettime_microTime());
 
             memcpy(&updateBuf[ublen], (char *)&rect,
                    sz_rfbFramebufferUpdateRectHeader);
@@ -2481,6 +2516,7 @@ Bool rfbSendRectEncodingRaw(rfbClientPtr cl, int x, int y, int w, int h)
     rect.r.w = Swap16IfLE(w);
     rect.r.h = Swap16IfLE(h);
     rect.encoding = Swap32IfLE(rfbEncodingRaw);
+    //rect.usRect_sendTime = Swap64IfLE(gettime_microTime());
 
     memcpy(&updateBuf[ublen], (char *)&rect,
            sz_rfbFramebufferUpdateRectHeader);
@@ -2530,6 +2566,7 @@ Bool rfbSendRectEncodingRaw(rfbClientPtr cl, int x, int y, int w, int h)
  * rectangle in framebuffer update ("LastRect" extension of RFB
  * protocol).
  */
+//send timeTracker[timeTrackerItem] back to client.
 
 static Bool rfbSendLastRectMarker(rfbClientPtr cl)
 {
@@ -2545,6 +2582,7 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl)
     rect.r.y = 0;
     rect.r.w = 0;
     rect.r.h = 0;
+    //rect.usRect_sendTime = Swap64IfLE(gettime_microTime());
 
     memcpy(&updateBuf[ublen], (char *)&rect,
            sz_rfbFramebufferUpdateRectHeader);
@@ -2552,7 +2590,20 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl)
 
     cl->rfbLastRectMarkersSent++;
     cl->rfbLastRectBytesSent += sz_rfbFramebufferUpdateRectHeader;
-
+    
+    //long deadbeef = Swap64IfLE(0xdeadbeefL);
+    int i;
+    //fprintf(stderr, "**********************\n");
+    if(t2p_microTime_back_clear == 0xdeadbeec){
+      for(i=0;i<TIME_COLUM;i++){
+         fprintf(stderr, "array[%d]: %ld\n", i, timeTracker[timeTrackerItem].array[i]);
+         timeTracker[timeTrackerItem].array[i] = Swap64IfLE(timeTracker[timeTrackerItem].array[i]);
+      }
+      char* deadbeef = (char *)&timeTracker[timeTrackerItem].array[0];
+      memcpy(&updateBuf[ublen], (char *)deadbeef, 8*TIME_COLUM);
+      t2p_microTime_back_clear = 0;
+    }
+    ublen += 8*TIME_COLUM;
     return TRUE;
 }
 
@@ -2572,6 +2623,7 @@ Bool rfbSendUpdateBuf(rfbClientPtr cl)
     fprintf(stderr, "\n");
     fprintf(stderr, "\n");
     */
+    //long time1_before = gettime_nanoTime();
     if (ublen > 0 && WriteExact(cl, updateBuf, ublen) < 0) {
         rfbLogPerror("rfbSendUpdateBuf: write");
         rfbCloseClient(cl);
@@ -2580,7 +2632,8 @@ Bool rfbSendUpdateBuf(rfbClientPtr cl)
 
     if (cl->captureEnable && cl->captureFD >= 0 && ublen > 0)
         WriteCapture(cl->captureFD, updateBuf, ublen);
-
+    //long time2_after = gettime_nanoTime();
+    //fprintf(stderr, "time for send:%ld\n", time2_after-time1_before);
     ublen = 0;
     return TRUE;
 }
@@ -2732,8 +2785,10 @@ Bool rfbSendDesktopSize(rfbClientPtr cl)
         rh.encoding = Swap32IfLE(rfbEncodingExtendedDesktopSize);
         rh.r.x = Swap16IfLE(cl->reason);
         rh.r.y = Swap16IfLE(cl->result);
+        //rh.usRect_sendTime = Swap64IfLE(gettime_microTime());
     } else {
         rh.encoding = Swap32IfLE(rfbEncodingNewFBSize);
+        //rh.usRect_sendTime = Swap64IfLE(gettime_microTime());
         rh.r.x = rh.r.y = 0;
     }
     rh.r.w = Swap16IfLE(rfbFB.width);

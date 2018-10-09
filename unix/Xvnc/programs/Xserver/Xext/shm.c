@@ -57,6 +57,7 @@ in this Software without prior written authorization from The Open Group.
 #include <sys/mman.h>
 #include "protocol-versions.h"
 #include "busfault.h"
+#include "timetrack.h"
 
 /* Needed for Solaris cross-zone shared memory extension */
 #ifdef HAVE_SHMCTL64
@@ -92,6 +93,10 @@ in this Software without prior written authorization from The Open Group.
 
 #include "extinit.h"
 
+extern timeTrack* timeTracker;
+extern unsigned long gettime_nanoTime();
+int timeTrackerItem;
+int appreqID=0;
 typedef struct _ShmScrPrivateRec {
     CloseScreenProcPtr CloseScreen;
     ShmFuncsPtr shmFuncs;
@@ -589,9 +594,21 @@ ProcShmPutImage(ClientPtr client)
                                shmdesc->addr + stuff->offset +
                                (stuff->srcY * length));
         if((shmdesc->addr[0] & 0xff)==0xde && (shmdesc->addr[1] & 0xff)==0xad && (shmdesc->addr[2] & 0xff)==0xbe && (shmdesc->addr[3] & 0xff)==0xef){
-           t2p_microTime_back = ((shmdesc->addr[4] & 0xff) << 24 | (shmdesc->addr[5] & 0xff) << 16 | (shmdesc->addr[6] & 0xff) << 8 | (shmdesc->addr[7] & 0xff)) & 0xffffffff;
+           //t2p_microTime_back = ((shmdesc->addr[4] & 0xff) << 24 | (shmdesc->addr[5] & 0xff) << 16 | (shmdesc->addr[6] & 0xff) << 8 | (shmdesc->addr[7] & 0xff)) & 0xffffffff;
+           appreqID = ((shmdesc->addr[4] & 0xff) << 24 | (shmdesc->addr[5] & 0xff) << 16 | (shmdesc->addr[6] & 0xff) << 8 | (shmdesc->addr[7] & 0xff)) & 0xffffffff;
+           fprintf(stderr, "appreqID 1: %d\n", appreqID);
            t2p_microTime_back_clear = 0xdeadbeef;
-           //fprintf(stderr, "t2p_microTime_back: %d\n", t2p_microTime_back);
+           int i;
+           for(i=0;i<NUM_ROW;i++){
+              if(timeTracker[i].eventID == appreqID){
+                  timeTracker[i].array[7] = (long)gettime_nanoTime();//nsTreq_pickup
+                  timeTrackerItem = i;
+                  break;
+              }
+           }
+           //if(timeTrackerItem != NUM_ROW)
+           //    for(i=0;i<=8;i++)
+           //       fprintf(stderr, "array[%d]: %ld, gettime: %ld\n", i, timeTracker[timeTrackerItem].array[i], gettime_nanoTime());
         }
       }
     else{

@@ -93,12 +93,15 @@ public class CMsgReaderV3 extends CMsgReader {
       }
 
     } else {
-
+      long time1_decode = System.nanoTime();
       int x = is.readU16();
       int y = is.readU16();
       int w = is.readU16();
       int h = is.readU16();
       int encoding = is.readS32();
+      //int pad_nouse= is.readS32();
+      //is.skip(4);
+      //usRect_sendTime = is.readS64();
 
       switch (encoding) {
         case RFB.ENCODING_NEW_FB_SIZE:
@@ -118,6 +121,7 @@ public class CMsgReaderV3 extends CMsgReader {
           break;
         case RFB.ENCODING_LAST_RECT:
           nUpdateRectsLeft = 1;   // this rectangle is the last one
+          readBenchmarkingResults();
           break;
         case RFB.ENCODING_CLIENT_REDIRECT:
           readClientRedirect(x, y, w, h);
@@ -126,14 +130,24 @@ public class CMsgReaderV3 extends CMsgReader {
           readRect(new Rect(x, y, x + w, y + h), encoding);
           break;
       }
+      long time2_decode = System.nanoTime();
+      long decode_time = time2_decode - time1_decode;
+      decode_totalTime += decode_time;
+      //System.out.println("TotalDecoding:" + decode_totalTime);
 
       nUpdateRectsLeft--;
+      //System.out.println(nUpdateRectsLeft + "Decoding:" + decode_time);
       if (nUpdateRectsLeft == 0) {
 		handler.framebufferUpdateEnd();
 		recvL_mTime = System.currentTimeMillis() * 1000;
 		double backDelay = (recvL_mTime - sendL_uTime) * 1e-3;
-                if(handle_uTime != 0xdeadbeefL)
-		    System.out.println((float)handle_uTime/1000.0 + ", " + backDelay);
+                if(handle_uTime != 0xdeadbeefL){
+		    System.out.println("DecodeTime(ms)         : " + ((double)decode_totalTime)*1e-6);
+                    System.out.println("ImageTransportTotal(ms): " + backDelay + " (Compress/Transport/Decompression..overlapped)");
+		    //System.out.println("backDelay:" + backDelay + "DecodeTotal:" + decode_totalTime);
+		    //System.out.println("backDelay:" + backDelay + "DecodeTotal:" + decode_totalTime + "RTT:" + RTT);
+		//System.out.println((float)handle_uTime/1000.0 + ", backDelay:" + backDelay + "DecodeTotal:" + decode_totalTime);
+                }
       }
     }
   }
@@ -144,6 +158,7 @@ public class CMsgReaderV3 extends CMsgReader {
     is.skip(4);
     sendL_uTime = is.readU64();
     long handle_uTime_tmp = is.readU64();
+    decode_totalTime = 0;
     //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
      
     if(((handle_uTime_tmp >> 32) & 0xffffffffL) == 0xdeadbeefL){
@@ -164,6 +179,30 @@ public class CMsgReaderV3 extends CMsgReader {
       handler.setName(name);
     }
 
+  }
+  
+  void readBenchmarkingResults() {
+    //long deadbeef = is.readU64();
+    //String name = is.readString();
+    long nsTinput_send = is.readU64();
+    long delta = is.readU64();
+    long nsTinput_recv = is.readU64();
+    long nsTevent_send = is.readU64();//array[3]
+    long nsTevent_pickup = is.readU64();
+    long nsTcopy = is.readU64();
+    long nsTreq_send = is.readU64();
+    long nsTreq_pickup = is.readU64();//array[7]
+    long nsTupdatebuffer_start = is.readU64();
+    long nsTupdate_encoding = is.readU64();
+    if(handle_uTime != 0xdeadbeefL){
+        System.out.println("****************************************");
+        System.out.println("RTT(ms)             : " + ((double)(System.nanoTime() - nsTinput_send)*1e-6));
+        System.out.println("Server Handling(ms) : " + ((double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6));
+        System.out.println("Game Handling(ms)   : " + ((double)(nsTreq_send - nsTevent_pickup)*1e-6));
+        System.out.println("Input Transport(ms) : " + ((double)delta)*1e-3);
+        System.out.println("Compression(ms)     : " + ((double)nsTupdate_encoding)*1e-6);
+    }
+    
   }
 
   void readExtendedDesktopSize(int x, int y, int w, int h) {
@@ -276,6 +315,7 @@ public class CMsgReaderV3 extends CMsgReader {
   long sendL_uTime;
   long recvL_mTime;
   long handle_uTime;
-
+  long decode_totalTime;
+  long usRect_sendTime;
   static LogWriter vlog = new LogWriter("CMsgReaderV3");
 }
