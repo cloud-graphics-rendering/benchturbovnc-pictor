@@ -639,6 +639,8 @@ typedef struct _rfbFramebufferUpdateMsg {
 typedef struct _rfbFramebufferUpdateRectHeader {
     rfbRectangle r;
     CARD32 encoding;            /* one of the encoding types rfbEncoding... */
+    //CARD32 pad;
+    //CARD64 usRect_sendTime;     /* server time when sending the head*/
 } rfbFramebufferUpdateRectHeader;
 
 #define sz_rfbFramebufferUpdateRectHeader (sz_rfbRectangle + 4)
@@ -1262,7 +1264,7 @@ typedef struct _rfbKeyEventMsg {
     CARD16 pad;
     CARD32 key;                 /* key is specified as an X keysym */
     CARD64 sendL_nanoTime;	/* record the time of send from client based on start time */
-    CARD64 sendL_miliTime;	/* record the time of send from client based on Epoch time */
+    CARD64 sendL_microTime;	/* record the time of send from client based on Epoch time */
 } rfbKeyEventMsg;
 
 #define sz_rfbKeyEventMsg sizeof(struct _rfbKeyEventMsg)

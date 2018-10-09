@@ -149,7 +149,7 @@ public abstract class CMsgWriter {
     endMsg();
   }
 
-/*  public synchronized void writeKeyEvent(int key, boolean down)
+  public synchronized void writeKeyEvent(int key, boolean down)
   {
     startMsg(RFB.KEY_EVENT);
     os.writeU8(down ? 1 : 0);
@@ -157,16 +157,15 @@ public abstract class CMsgWriter {
     os.writeU32(key);
     endMsg();
   }
-*/
 
-  public synchronized void writeKeyEvent(int key, boolean down, long sendL_nanoTime, long sendL_miliTime)
+  public synchronized void writeKeyEvent(int key, boolean down, long sendL_nanoTime, long sendL_microTime)
   {
     startMsg(RFB.KEY_EVENT);
     os.writeU8(down ? 1 : 0);
     os.pad(2);
     os.writeU32(key);
     os.writeU64(sendL_nanoTime);
-    os.writeU64(sendL_miliTime);
+    os.writeU64(sendL_microTime);
     endMsg();
   }
 

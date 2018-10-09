@@ -1747,10 +1747,9 @@ public class CConn extends CConnection implements UserPasswdGetter,
       return;
     try {
       long sendL_nanoTime = System.nanoTime();
-      long sendL_miliTime = System.currentTimeMillis();
-      //long sendL_nanoTime3 = Instant.now().toEpochMilli();
+      long sendL_microTime = System.currentTimeMillis() * 1000;
       //writer().writeKeyEvent(keysym, down);
-      writer().writeKeyEvent(keysym, down, sendL_nanoTime, sendL_miliTime);
+      writer().writeKeyEvent(keysym, down, sendL_nanoTime, sendL_microTime);
     } catch (Exception e) {
       if (!shuttingDown) {
         vlog.error("Error writing key event:");
