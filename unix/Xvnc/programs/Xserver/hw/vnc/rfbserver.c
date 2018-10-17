@@ -1267,7 +1267,7 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
         long t2_microTime = gettime_microTime();
         usTinput_send_delta = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
         //fprintf(stderr,"t1: %ld, t2: %ld, delta1: %ld, delta2: %ld\n", t1_microTime, t2_microTime, gettime_microTime() - Swap64IfLE(msg.ke.sendL_microTime), usTinput_send_delta);
-        fprintf(stderr,"delta for send inputs(ms): %ld\n", usTinput_send_delta);
+        //fprintf(stderr,"delta for send inputs(ms): %ld\n", usTinput_send_delta);
  
 	nsTinput_send = (long)Swap64IfLE(msg.ke.sendL_nanoTime);
         nsTinput_recv = (long)gettime_nanoTime();
@@ -2006,13 +2006,10 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     if(t2p_microTime_back_clear == 0xdeadbeef){
         t2p_microTime_back_clear = 0xdeadbeee;
         timeTracker[timeTrackerItem].array[8] = (long)gettime_nanoTime();//nsTupdatebuffer_start
-        fprintf(stderr, "         beforeencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
-        //unsigned int t3p_microTime = gettime_microPart();
-    	//int delta2 = (t3p_microTime - t2p_microTime_back);
-        unsigned int t1p_nanoTime = (unsigned int)(timeTracker[timeTrackerItem].array[0] & 0xffffffffL);
-        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L | t1p_nanoTime);
-        //fu->sendHandle_microTime = 0;
-    	fprintf(stderr, "start update, t1p:%ld\n", timeTracker[timeTrackerItem].array[0]);
+        //fprintf(stderr, "         beforeencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
+        //unsigned int t1p_nanoTime = (unsigned int)(timeTracker[timeTrackerItem].array[0] & 0xffffffffL);
+        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L);
+    	//fprintf(stderr, "start update, t1p:%ld\n", timeTracker[timeTrackerItem].array[0]);
     }else{
         fu->sendHandle_microTime = Swap64IfLE(0x0);
     }
@@ -2285,8 +2282,8 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     if(t2p_microTime_back_clear == 0xdeadbeee){
         timeTracker[timeTrackerItem].array[9] = (long)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
         t2p_microTime_back_clear = 0xdeadbeec;
-        fprintf(stderr, "         encoding nanoSec:%ld\n", timeTracker[timeTrackerItem].array[9]);
-        fprintf(stderr, "         afterencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
+        //fprintf(stderr, "         encoding nanoSec:%ld\n", timeTracker[timeTrackerItem].array[9]);
+        //fprintf(stderr, "         afterencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
     }
 
     if (nUpdateRegionRects == 0xFFFF && !rfbSendLastRectMarker(cl))
@@ -2596,7 +2593,7 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl)
     //fprintf(stderr, "**********************\n");
     if(t2p_microTime_back_clear == 0xdeadbeec){
       for(i=0;i<TIME_COLUM;i++){
-         fprintf(stderr, "array[%d]: %ld\n", i, timeTracker[timeTrackerItem].array[i]);
+         //fprintf(stderr, "array[%d]: %ld\n", i, timeTracker[timeTrackerItem].array[i]);
          timeTracker[timeTrackerItem].array[i] = Swap64IfLE(timeTracker[timeTrackerItem].array[i]);
       }
       char* deadbeef = (char *)&timeTracker[timeTrackerItem].array[0];

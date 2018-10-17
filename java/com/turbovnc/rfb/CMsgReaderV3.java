@@ -66,6 +66,7 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
+    System.out.println("RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp");
   }
 
   public void readMsg() {
@@ -139,14 +140,18 @@ public class CMsgReaderV3 extends CMsgReader {
       //System.out.println(nUpdateRectsLeft + "Decoding:" + decode_time);
       if (nUpdateRectsLeft == 0) {
 		handler.framebufferUpdateEnd();
-		recvL_mTime = System.currentTimeMillis() * 1000;
-		double backDelay = (recvL_mTime - sendL_uTime) * 1e-3;
+		recvL_mTime_ntp = System.currentTimeMillis() * 1000;
+		double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
+		//recvL_mTime_ref = System.nanoTime();
+		//double backDelay_ref = (recvL_mTime_ref - updateStart_nanoTime) * 1e-6;
                 if(handle_uTime != 0xdeadbeefL){
-		    System.out.println("DecodeTime(ms)         : " + ((double)decode_totalTime)*1e-6);
-                    System.out.println("ImageTransportTotal(ms): " + backDelay + " (Compress/Transport/Decompression..overlapped)");
-		    //System.out.println("backDelay:" + backDelay + "DecodeTotal:" + decode_totalTime);
-		    //System.out.println("backDelay:" + backDelay + "DecodeTotal:" + decode_totalTime + "RTT:" + RTT);
-		//System.out.println((float)handle_uTime/1000.0 + ", backDelay:" + backDelay + "DecodeTotal:" + decode_totalTime);
+		    //System.out.println("Decompression(ms)       : " + ((double)decode_totalTime)*1e-6);
+                    //System.out.println("Network&Decompression(ms) : " + (backDelay_ntp - compression_time));
+                    //System.out.println("ImageTransportTotal(ntp,ms) : " + backDelay_ntp + " (Compress/Transport/Decompression..overlaped)");
+                    double decompression_time = ((double)decode_totalTime)*1e-6;
+                    double network_decompression = backDelay_ntp - compression_time;
+                    double image_trans_ntp = backDelay_ntp;
+                    System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp);
                 }
       }
     }
@@ -157,6 +162,7 @@ public class CMsgReaderV3 extends CMsgReader {
     nUpdateRectsLeft = is.readU16();
     is.skip(4);
     sendL_uTime = is.readU64();
+    updateStart_nanoTime = System.nanoTime();
     long handle_uTime_tmp = is.readU64();
     decode_totalTime = 0;
     //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
@@ -195,12 +201,18 @@ public class CMsgReaderV3 extends CMsgReader {
     long nsTupdatebuffer_start = is.readU64();
     long nsTupdate_encoding = is.readU64();
     if(handle_uTime != 0xdeadbeefL){
-        System.out.println("****************************************");
-        System.out.println("RTT(ms)             : " + ((double)(System.nanoTime() - nsTinput_send)*1e-6));
-        System.out.println("Server Handling(ms) : " + ((double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6));
-        System.out.println("Game Handling(ms)   : " + ((double)(nsTreq_send - nsTevent_pickup)*1e-6));
-        System.out.println("Input Transport(ms) : " + ((double)delta)*1e-3);
-        System.out.println("Compression(ms)     : " + ((double)nsTupdate_encoding)*1e-6);
+        //System.out.println("****************************************");
+        //System.out.println("RTT(ms)             : " + ((double)(System.nanoTime() - nsTinput_send)*1e-6));
+        //System.out.println("Server Handling(ms) : " + ((double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6));
+        //System.out.println("Game Handling(ms)   : " + ((double)(nsTreq_send - nsTevent_pickup)*1e-6));
+        //System.out.println("Input Transport(ms) : " + ((double)delta)*1e-3);
+        //System.out.println("Compression(ms)     : " + ((double)nsTupdate_encoding)*1e-6);
+        RTT = (double)(System.nanoTime() - nsTinput_send)*1e-6;
+        server_handling = (double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6;
+        game_handling = (double)(nsTreq_send - nsTevent_pickup)*1e-6;
+        input_transport = ((double)delta)*1e-3;
+        compression_time = ((double)nsTupdate_encoding)*1e-6;
+        //System.out.println(((double)(System.nanoTime() - nsTinput_send)*1e-6), );
     }
     
   }
@@ -313,9 +325,17 @@ public class CMsgReaderV3 extends CMsgReader {
 
   int nUpdateRectsLeft;
   long sendL_uTime;
-  long recvL_mTime;
+  //long recvL_mTime_ref;
+  long recvL_mTime_ntp;
   long handle_uTime;
   long decode_totalTime;
   long usRect_sendTime;
+  long updateStart_nanoTime;
+
+  double RTT;
+  double server_handling;
+  double game_handling;
+  double input_transport;
+  double compression_time;
   static LogWriter vlog = new LogWriter("CMsgReaderV3");
 }
