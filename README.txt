@@ -140,3 +140,26 @@ This distribution contains software from the X Window System.  This is:
  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
  ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  SOFTWARE.
+=============
+If you make some changes to the code, you need to re-build again. The following steps is for you to reference:
+=============================
+How to compile TurboVNC
+    sudo apt install cmake
+    sudo apt install libx11-dev
+    sudo dpkg -i libjpeg-turbo-official_2.0.0_amd64.deb
+    sudo apt-get install libpam0g-dev
+    cd {build_directory}
+    cmake -G"Unix Makefiles" [additional CMake flags] {source_directory}
+    make
+    sudo make install
+    
+TurboVNC will be installed at /opt/TurboVNC
+
+If you want to uninstall a .deb package, use: 
+    sudo dpkg -r package_name
+
+If you want to install a TurboVNC without any modification: 
+https://www.turbovnc.org/
+download and sudo dpkg -i xxx.deb
+
+If you want our TurboVNC with timing measurement feature, you can use this git or download our binary from HERE(TO DO)
