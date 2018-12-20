@@ -1305,6 +1305,7 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
         if (!rfbViewOnly && !cl->viewOnly) {
             cl->cursorX = (int)Swap16IfLE(msg.pe.x);
             cl->cursorY = (int)Swap16IfLE(msg.pe.y);
+            fprintf(stderr,"x:%d, y:%d", cl->cursorX, cl->cursorY);
             PtrAddEvent(msg.pe.buttonMask, cl->cursorX, cl->cursorY, cl);
         }
         return;

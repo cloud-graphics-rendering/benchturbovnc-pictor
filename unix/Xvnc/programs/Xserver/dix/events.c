@@ -2156,6 +2156,7 @@ DeliverEventToInputClients(DeviceIntPtr dev, InputClients * inputclients,
                            int count, Mask filter, GrabPtr grab,
                            ClientPtr *client_return, Mask *mask_return)
 {
+    //fprintf(stderr, "DeliverEventsToInputClients\n");
     int attempt;
     enum EventDeliveryState rc = EVENT_NOT_DELIVERED;
     Bool have_device_button_grab_class_client = FALSE;
@@ -2248,6 +2249,7 @@ int
 DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                       *pEvents, int count, Mask filter, GrabPtr grab)
 {
+    //fprintf(stderr, "DeliverEventsToWindow\n");
     int deliveries = 0, nondeliveries = 0;
     ClientPtr client = NullClient;
     Mask deliveryMask = 0;      /* If a grab occurs due to a button press, then
@@ -2360,6 +2362,7 @@ FilterRawEvents(const ClientPtr client, const GrabPtr grab, WindowPtr root)
 void
 DeliverRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
 {
+    //fprintf(stderr, "DeliverRawEvent\n");
     GrabPtr grab = device->deviceGrab.grab;
     xEvent *xi;
     int i, rc;
@@ -2441,6 +2444,7 @@ int
 MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
                            int count, Mask filter, ClientPtr dontClient)
 {
+    //fprintf(stderr, "MaybeDeliverEventsToClients\n");
     OtherClients *other;
 
     if (pWin->eventMask & filter) {
@@ -2646,6 +2650,7 @@ static int
 DeliverEvent(DeviceIntPtr dev, xEvent *xE, int count,
              WindowPtr win, Window child, GrabPtr grab)
 {
+    //fprintf(stderr, "DeliverEvent\n");
     SpritePtr pSprite = dev->spriteInfo->sprite;
     Mask filter;
     int deliveries = 0;
@@ -2663,6 +2668,7 @@ static int
 DeliverOneEvent(InternalEvent *event, DeviceIntPtr dev, enum InputLevel level,
                 WindowPtr win, Window child, GrabPtr grab)
 {
+    //fprintf(stderr, "DeliverOneEvent\n");
     xEvent *xE = NULL;
     int count = 0;
     int deliveries = 0;
@@ -2718,6 +2724,8 @@ int
 DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     WindowPtr stopAt, DeviceIntPtr dev)
 {
+    //fprintf(stderr, "DeliverDeviceEvent\n");
+    //fprintf(stderr, "type:%d\n", event->any.type);
     Window child = None;
     int deliveries = 0;
     int mask;
@@ -2728,6 +2736,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
         if ((mask = EventIsDeliverable(dev, event->any.type, pWin))) {
             /* XI2 events first */
             if (mask & EVENT_XI2_MASK) {
+                //fprintf(stderr, "DeliverDeviceEvent XI2\n");
                 deliveries =
                     DeliverOneEvent(event, dev, XI2, pWin, child, grab);
                 if (deliveries > 0)
@@ -2736,6 +2745,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 
             /* XI events */
             if (mask & EVENT_XI1_MASK) {
+                //fprintf(stderr, "DeliverDeviceEvent XI\n");
                 deliveries = DeliverOneEvent(event, dev, XI, pWin, child, grab);
                 if (deliveries > 0)
                     break;
@@ -2743,6 +2753,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 
             /* Core event */
             if ((mask & EVENT_CORE_MASK) && IsMaster(dev) && dev->coreEvents) {
+                //fprintf(stderr, "DeliverDeviceEvent core\n");
                 deliveries =
                     DeliverOneEvent(event, dev, CORE, pWin, child, grab);
                 if (deliveries > 0)
@@ -2780,6 +2791,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 int
 DeliverEvents(WindowPtr pWin, xEvent *xE, int count, WindowPtr otherParent)
 {
+    //fprintf(stderr, "DeliverEvents\n");
     DeviceIntRec dummy;
     int deliveries;
 
@@ -4071,6 +4083,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
 void
 DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 {
+    //fprintf(stderr, "DeliverFocusedEvent\n");
     DeviceIntPtr ptr;
     WindowPtr focus = keybd->focus->win;
     BOOL sendCore = (IsMaster(keybd) && keybd->coreEvents);
@@ -4155,6 +4168,7 @@ int
 DeliverOneGrabbedEvent(InternalEvent *event, DeviceIntPtr dev,
                        enum InputLevel level)
 {
+    //fprintf(stderr, "DeliverOneGrabedEvent\n");
     SpritePtr pSprite = dev->spriteInfo->sprite;
     int rc;
     xEvent *xE = NULL;
@@ -4233,6 +4247,7 @@ int
 DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                     Bool deactivateGrab)
 {
+    //fprintf(stderr, "DeliverGrabedEvent\n");
     GrabPtr grab;
     GrabInfoPtr grabinfo;
     int deliveries = 0;
@@ -4878,6 +4893,7 @@ ProcGetInputFocus(ClientPtr client)
 int
 ProcGrabPointer(ClientPtr client)
 {
+    //fprintf(stderr, "ProcGrabPointer\n");
     xGrabPointerReply rep;
     DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
@@ -4990,6 +5006,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
 int
 ProcUngrabPointer(ClientPtr client)
 {
+    //fprintf(stderr, "ProcUngrabPointer\n");
     DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
     TimeStamp time;
@@ -5919,6 +5936,7 @@ ProcRecolorCursor(ClientPtr client)
 void
 WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 {
+    //fprintf(stderr, "WriteEventsToClient\n");
 #ifdef PANORAMIX
     xEvent eventCopy;
 #endif
@@ -5959,6 +5977,10 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
                 eventCopy.u.keyButtonPointer.root) {
                 eventCopy.u.keyButtonPointer.eventX += screenInfo.screens[0]->x;
                 eventCopy.u.keyButtonPointer.eventY += screenInfo.screens[0]->y;
+            }else{
+                //fprintf(stderr, "WriteEventsToClient: hahahah\n");
+                eventCopy.u.keyButtonPointer.eventX = screenInfo.screens[0]->x;
+                eventCopy.u.keyButtonPointer.eventY = screenInfo.screens[0]->y;
             }
             events = &eventCopy;
             break;

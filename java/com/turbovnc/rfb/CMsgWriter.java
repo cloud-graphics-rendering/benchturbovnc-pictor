@@ -168,10 +168,11 @@ public abstract class CMsgWriter {
     os.writeU64(sendL_microTime);
     endMsg();
   }
-
+  
   public synchronized void writePointerEvent(Point pos, int buttonMask)
   {
     Point p = new Point(pos.x, pos.y);
+    System.out.println("pos.x: " + pos.x + " pos.y: " + pos.y);
     if (p.x < 0) p.x = 0;
     if (p.y < 0) p.y = 0;
     if (p.x >= cp.width) p.x = cp.width - 1;
