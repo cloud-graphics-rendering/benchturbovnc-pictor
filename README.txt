@@ -155,6 +155,9 @@ How to compile TurboVNC
     
 TurboVNC will be installed at /opt/TurboVNC
 
+You can also release your own deb package(under build directory):
+$ sudo make deb
+
 If you want to uninstall a .deb package, use: 
     sudo dpkg -r package_name
 
