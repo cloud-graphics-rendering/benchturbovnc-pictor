@@ -52,7 +52,7 @@
 #include "inpututils.h"
 #include "timetrack.h"
 
-extern unsigned int input_eventID;
+extern int input_eventID;
 extern timeTrack* timeTracker;
 extern int timeheader;
 
