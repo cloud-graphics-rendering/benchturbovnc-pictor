@@ -149,14 +149,14 @@ public abstract class CMsgWriter {
     endMsg();
   }
 
-  public synchronized void writeKeyEvent(int key, boolean down)
+  /*public synchronized void writeKeyEvent(int key, boolean down)
   {
     startMsg(RFB.KEY_EVENT);
     os.writeU8(down ? 1 : 0);
     os.pad(2);
     os.writeU32(key);
     endMsg();
-  }
+  }*/
 
   public synchronized void writeKeyEvent(int key, boolean down, long sendL_nanoTime, long sendL_microTime)
   {
@@ -169,10 +169,28 @@ public abstract class CMsgWriter {
     endMsg();
   }
   
-  public synchronized void writePointerEvent(Point pos, int buttonMask)
+  public synchronized void writePointerEvent(Point pos, int buttonMask, long sendL_nanoTime, long sendL_microTime)
   {
     Point p = new Point(pos.x, pos.y);
-    System.out.println("pos.x: " + pos.x + " pos.y: " + pos.y);
+    //System.out.println("pos.x: " + pos.x + " pos.y: " + pos.y);
+    if (p.x < 0) p.x = 0;
+    if (p.y < 0) p.y = 0;
+    if (p.x >= cp.width) p.x = cp.width - 1;
+    if (p.y >= cp.height) p.y = cp.height - 1;
+
+    startMsg(RFB.POINTER_EVENT);
+    os.writeU8(buttonMask);
+    os.writeU16(p.x);
+    os.writeU16(p.y);
+    os.pad(2);
+    os.writeU64(sendL_nanoTime);
+    os.writeU64(sendL_microTime);
+    endMsg();
+  }
+
+  /*public synchronized void writePointerEvent(Point pos, int buttonMask)
+  {
+    Point p = new Point(pos.x, pos.y);
     if (p.x < 0) p.x = 0;
     if (p.y < 0) p.y = 0;
     if (p.x >= cp.width) p.x = cp.width - 1;
@@ -183,7 +201,7 @@ public abstract class CMsgWriter {
     os.writeU16(p.x);
     os.writeU16(p.y);
     endMsg();
-  }
+  }*/
 
   public synchronized void writeClientCutText(String str, int len)
   {

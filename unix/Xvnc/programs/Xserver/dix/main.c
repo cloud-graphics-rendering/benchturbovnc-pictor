@@ -155,7 +155,7 @@ dix_main(int argc, char *argv[], char *envp[])
     timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
     fprintf(stderr, "creating shared memory for time tracking in VNC server\n");
     timeTracker->eventID = 0xdeadbeef;
-    timeTracker->pid     = 0xbeefdead;
+    timeTracker->valid     = 0xbeefdead;
     for(i=0;i<TIME_COLUM;i++){
         timeTracker->array[i] = i;
     }
