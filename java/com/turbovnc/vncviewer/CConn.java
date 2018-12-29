@@ -2269,7 +2269,10 @@ public class CConn extends CConnection implements UserPasswdGetter,
     }
 
     try {
-      writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
+      long sendL_nanoTime = System.nanoTime();
+      long sendL_microTime = System.currentTimeMillis() * 1000;
+      writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask, sendL_nanoTime, sendL_microTime);
+      //writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
     } catch (Exception e) {
       if (!shuttingDown) {
         vlog.error("Error writing pointer event:");
@@ -2303,8 +2306,12 @@ public class CConn extends CConnection implements UserPasswdGetter,
       x = ev.getX();
       y = ev.getY();
       try {
-        writer().writePointerEvent(new Point(x, y), wheelMask);
-        writer().writePointerEvent(new Point(x, y), buttonMask);
+        long sendL_nanoTime = System.nanoTime();
+        long sendL_microTime = System.currentTimeMillis() * 1000;
+        writer().writePointerEvent(new Point(x, y), wheelMask, sendL_nanoTime, sendL_microTime);
+        writer().writePointerEvent(new Point(x, y), buttonMask, sendL_nanoTime, sendL_microTime);
+        //writer().writePointerEvent(new Point(x, y), wheelMask);
+        //writer().writePointerEvent(new Point(x, y), buttonMask);
       } catch (Exception e) {
         if (!shuttingDown) {
           vlog.error("Error writing wheel event:");

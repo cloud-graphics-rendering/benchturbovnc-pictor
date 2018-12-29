@@ -139,20 +139,20 @@ public class CMsgReaderV3 extends CMsgReader {
       nUpdateRectsLeft--;
       //System.out.println(nUpdateRectsLeft + "Decoding:" + decode_time);
       if (nUpdateRectsLeft == 0) {
-		handler.framebufferUpdateEnd();
-		recvL_mTime_ntp = System.currentTimeMillis() * 1000;
-		double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
-		//recvL_mTime_ref = System.nanoTime();
-		//double backDelay_ref = (recvL_mTime_ref - updateStart_nanoTime) * 1e-6;
-                if(handle_uTime != 0xdeadbeefL){
-		    //System.out.println("Decompression(ms)       : " + ((double)decode_totalTime)*1e-6);
-                    //System.out.println("Network&Decompression(ms) : " + (backDelay_ntp - compression_time));
-                    //System.out.println("ImageTransportTotal(ntp,ms) : " + backDelay_ntp + " (Compress/Transport/Decompression..overlaped)");
-                    double decompression_time = ((double)decode_totalTime)*1e-6;
-                    double network_decompression = backDelay_ntp - compression_time;
-                    double image_trans_ntp = backDelay_ntp;
-                    System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp);
-                }
+	handler.framebufferUpdateEnd();
+	recvL_mTime_ntp = System.currentTimeMillis() * 1000;
+	double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
+	//recvL_mTime_ref = System.nanoTime();
+	//double backDelay_ref = (recvL_mTime_ref - updateStart_nanoTime) * 1e-6;
+        if(handle_uTime != 0xdeadbeefL){//data is valid
+	    //System.out.println("Decompression(ms)       : " + ((double)decode_totalTime)*1e-6);
+            //System.out.println("Network&Decompression(ms) : " + (backDelay_ntp - compression_time));
+            //System.out.println("ImageTransportTotal(ntp,ms) : " + backDelay_ntp + " (Compress/Transport/Decompression..overlaped)");
+            double decompression_time = ((double)decode_totalTime)*1e-6;
+            double network_decompression = backDelay_ntp - compression_time;
+            double image_trans_ntp = backDelay_ntp;
+            System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp);
+        }
       }
     }
   }
@@ -166,10 +166,10 @@ public class CMsgReaderV3 extends CMsgReader {
     long handle_uTime_tmp = is.readU64();
     decode_totalTime = 0;
     //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
-     
+    // higher 32bits is 0xdeadbeef, which means the data is valid.     
     if(((handle_uTime_tmp >> 32) & 0xffffffffL) == 0xdeadbeefL){
 	handle_uTime = handle_uTime_tmp & 0xffffffffL;
-    }else{
+    }else{//data is invalid
 	handle_uTime = 0xdeadbeefL;
     }
     
@@ -184,7 +184,6 @@ public class CMsgReaderV3 extends CMsgReader {
     } else {
       handler.setName(name);
     }
-
   }
   
   void readBenchmarkingResults() {

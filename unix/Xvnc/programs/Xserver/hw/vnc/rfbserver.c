@@ -82,16 +82,11 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl);
 Bool rfbSendDesktopSize(rfbClientPtr cl);
 
 #ifndef STOP_BENCH
-long usTinput_send_delta = 0;
-long nsTinput_send = 0;
-long nsTinput_recv = 0;
-int  keyboard_eventID = 0;
+unsigned int  input_eventID = 0;
 int  timeheader = 0;
 
 extern timeTrack* timeTracker;
-extern int appreqID;
 extern int timeTrackerItem;
-extern unsigned int t2p_microTime_back;
 extern unsigned int t2p_microTime_back_clear;
 #endif
 
@@ -1258,32 +1253,29 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
     }
 
     case rfbKeyEvent:
-
         cl->rfbKeyEventsRcvd++;
 
         READ(((char *)&msg) + 1, sz_rfbKeyEventMsg - 1)
-        #ifndef STOP_BENCH
-        long t1_microTime = Swap64IfLE(msg.ke.sendL_microTime);
-        long t2_microTime = gettime_microTime();
-        usTinput_send_delta = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
-        //fprintf(stderr,"t1: %ld, t2: %ld, delta1: %ld, delta2: %ld\n", t1_microTime, t2_microTime, gettime_microTime() - Swap64IfLE(msg.ke.sendL_microTime), usTinput_send_delta);
-        //fprintf(stderr,"delta for send inputs(ms): %ld\n", usTinput_send_delta);
- 
-	nsTinput_send = (long)Swap64IfLE(msg.ke.sendL_nanoTime);
-        nsTinput_recv = (long)gettime_nanoTime();
-        keyboard_eventID++;
-        //static int  timeheader = 0;
-        timeheader++;
-        timeheader = (timeheader==10)?0:timeheader;
-        //fprintf(stderr,"head: %d\n", timeheader);
-        timeTracker[timeheader].eventID = keyboard_eventID;
-        timeTracker[timeheader].pid = keyboard_eventID;
-        timeTracker[timeheader].array[0] = nsTinput_send;
-        timeTracker[timeheader].array[1] = usTinput_send_delta;
-        timeTracker[timeheader].array[2] = nsTinput_recv;
-        #endif
         if (!rfbViewOnly && !cl->viewOnly) {
+            #ifndef STOP_BENCH
+              long t1_microTime = Swap64IfLE(msg.ke.sendL_microTime);
+              long t2_microTime = gettime_microTime();
+
+              input_eventID++;
+              timeheader++;
+              timeheader = (timeheader==10)?0:timeheader;
+              //fprintf(stderr,"head: %d\n", timeheader);
+              timeTracker[timeheader].eventID = input_eventID;
+              timeTracker[timeheader].valid = 1;
+              timeTracker[timeheader].array[0] = (long)Swap64IfLE(msg.ke.sendL_nanoTime);//input send
+              timeTracker[timeheader].array[1] = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
+              timeTracker[timeheader].array[2] = (long)gettime_nanoTime();//input recv
+            #endif
             KeyEvent((KeySym)Swap32IfLE(msg.ke.key), msg.ke.down);
+        }else{
+            #ifndef STOP_BENCH
+              timeTracker[timeheader].valid = 0;
+            #endif
         }
         return;
 
@@ -1303,9 +1295,26 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
             pointerClient = cl;
 
         if (!rfbViewOnly && !cl->viewOnly) {
+            #ifndef STOP_BENCH
+            input_eventID++;
+            timeheader++;
+            timeheader = (timeheader==10)?0:timeheader;
+            if(msg.pe.buttonMask & 0x81 != 0){
+              long t1_microTime = Swap64IfLE(msg.ke.sendL_microTime);
+              long t2_microTime = gettime_microTime();
+              timeTracker[timeheader].eventID = input_eventID;
+              timeTracker[timeheader].valid = 1;
+              timeTracker[timeheader].array[0] = (long)Swap64IfLE(msg.ke.sendL_nanoTime);//input send
+              timeTracker[timeheader].array[1] = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
+              timeTracker[timeheader].array[2] = (long)gettime_nanoTime();//input recv
+              //fprintf(stderr,"head: %d, array[0]:%ld, array[1]:%ld, array[2]:%ld\n", timeheader, timeTracker[timeheader].array[0], timeTracker[timeheader].array[1], timeTracker[timeheader].array[2]);
+            }else{
+              timeTracker[timeheader].valid = 0;
+            }
+            #endif
             cl->cursorX = (int)Swap16IfLE(msg.pe.x);
             cl->cursorY = (int)Swap16IfLE(msg.pe.y);
-            fprintf(stderr,"x:%d, y:%d", cl->cursorX, cl->cursorY);
+            //fprintf(stderr,"CURSORX: %d, CURSORY: %d\n", cl->cursorX, cl->cursorY);
             PtrAddEvent(msg.pe.buttonMask, cl->cursorX, cl->cursorY, cl);
         }
         return;
@@ -2004,16 +2013,23 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     /*
      * Now send the update.
      */
-    if(t2p_microTime_back_clear == 0xdeadbeef){
+    //if(timeTrackerItem != -1){
+      //if(t2p_microTime_back_clear == 0xdeadbeef && timeTracker[timeTrackerItem].valid){
+      if(t2p_microTime_back_clear == 0xdeadbeef){
         t2p_microTime_back_clear = 0xdeadbeee;
         timeTracker[timeTrackerItem].array[8] = (long)gettime_nanoTime();//nsTupdatebuffer_start
+        //timeTracker[timeTrackerItem].valid = 0;
         //fprintf(stderr, "         beforeencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
         //unsigned int t1p_nanoTime = (unsigned int)(timeTracker[timeTrackerItem].array[0] & 0xffffffffL);
         fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L);
     	//fprintf(stderr, "start update, t1p:%ld\n", timeTracker[timeTrackerItem].array[0]);
-    }else{
-        fu->sendHandle_microTime = Swap64IfLE(0x0);
-    }
+      }else{
+        fu->sendHandle_microTime = Swap64IfLE(0x0000000000000000L);
+        //timeTracker[timeTrackerItem].valid = 0;
+      }
+    //}else{
+    //    fu->sendHandle_microTime = Swap64IfLE(0x0000000000000000L);
+    //}
     
     fu->sendL_uTime = Swap64IfLE(gettime_microTime());
 
@@ -2279,13 +2295,19 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
         REGION_NULL(pScreen, updateRegion);
     }
     
-
-    if(t2p_microTime_back_clear == 0xdeadbeee){
+    //if(timeTrackerItem != -1){
+      //if(t2p_microTime_back_clear == 0xdeadbeee && timeTracker[timeTrackerItem].valid){
+      if(t2p_microTime_back_clear == 0xdeadbeee){
         timeTracker[timeTrackerItem].array[9] = (long)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
         t2p_microTime_back_clear = 0xdeadbeec;
         //fprintf(stderr, "         encoding nanoSec:%ld\n", timeTracker[timeTrackerItem].array[9]);
         //fprintf(stderr, "         afterencoding arry[8]:%ld\n", timeTracker[timeTrackerItem].array[8]);
-    }
+      }
+      //else{
+      //  timeTracker[timeTrackerItem].valid = 0;//encoding and send
+      //}
+    //timeTrackerItem = -1;
+    //}
 
     if (nUpdateRegionRects == 0xFFFF && !rfbSendLastRectMarker(cl))
         goto abort;
@@ -2589,9 +2611,7 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl)
     cl->rfbLastRectMarkersSent++;
     cl->rfbLastRectBytesSent += sz_rfbFramebufferUpdateRectHeader;
     
-    //long deadbeef = Swap64IfLE(0xdeadbeefL);
     int i;
-    //fprintf(stderr, "**********************\n");
     if(t2p_microTime_back_clear == 0xdeadbeec){
       for(i=0;i<TIME_COLUM;i++){
          //fprintf(stderr, "array[%d]: %ld\n", i, timeTracker[timeTrackerItem].array[i]);
@@ -2601,6 +2621,7 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl)
       memcpy(&updateBuf[ublen], (char *)deadbeef, 8*TIME_COLUM);
       t2p_microTime_back_clear = 0;
     }
+    //timeTrackerItem = -1;
     ublen += 8*TIME_COLUM;
     return TRUE;
 }

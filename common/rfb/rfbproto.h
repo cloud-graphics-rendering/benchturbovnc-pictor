@@ -1279,6 +1279,10 @@ typedef struct _rfbPointerEventMsg {
     CARD8 buttonMask;           /* bits 0-7 are buttons 1-8, 0=up, 1=down */
     CARD16 x;
     CARD16 y;
+    CARD16 pad;
+    CARD64 sendL_nanoTime;	/* record the time of send from client based on start time */
+    CARD64 sendL_microTime;	/* record the time of send from client based on Epoch time */
+    
 } rfbPointerEventMsg;
 
 #define rfbButton1Mask 1
@@ -1287,7 +1291,8 @@ typedef struct _rfbPointerEventMsg {
 #define rfbButton4Mask 8
 #define rfbButton5Mask 16
 
-#define sz_rfbPointerEventMsg 6
+#define sz_rfbPointerEventMsg sizeof(struct _rfbPointerEventMsg)
+//#define sz_rfbPointerEventMsg 6
 
 
 

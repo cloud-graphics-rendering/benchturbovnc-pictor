@@ -52,11 +52,7 @@
 #include "inpututils.h"
 #include "timetrack.h"
 
-extern unsigned int delta_send_microTime;
-extern unsigned int t1p_microTime;
-extern unsigned int nsTinput_recv;
-extern unsigned int keyboard_eventID;
-
+extern unsigned int input_eventID;
 extern timeTrack* timeTracker;
 extern int timeheader;
 
@@ -69,8 +65,6 @@ static int eventToRawEvent(RawDeviceEvent *ev, xEvent **xi);
 static int eventToBarrierEvent(BarrierEvent *ev, xEvent **xi);
 static int eventToTouchOwnershipEvent(TouchOwnershipEvent *ev, xEvent **xi);
 
-//static CARD16 last_mouse_eventX = 640;
-//static CARD16 last_mouse_eventY = 480;
 /* Do not use, read comments below */
 BOOL EventIsKeyRepeat(xEvent *event);
 
@@ -128,14 +122,31 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
             ret = BadMatch;
             goto out;
         }
-        fprintf(stderr, "EventToCore\n");
+
+        core = calloc(1, sizeof(*core));
+        if (!core)
+            return BadAlloc;
+        count = 1;
+        core->u.u.type = e->type - ET_KeyPress + KeyPress;
+        core->u.u.detail = e->detail.key & 0xFF;
+        #ifndef STOP_BENCH
+        core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
+        #else
+        core->u.keyButtonPointer.time  = e->time;
+        #endif
+        core->u.keyButtonPointer.rootX = e->root_x;
+        core->u.keyButtonPointer.rootY = e->root_y;
+        core->u.keyButtonPointer.state = e->corestate;
+        core->u.keyButtonPointer.root = e->root;
+        EventSetKeyRepeatFlag(core, (e->type == ET_KeyPress && e->key_repeat));
+        ret = Success;
     }
+        break;
         /* fallthrough */
     case ET_ButtonPress:
     case ET_ButtonRelease:
     {
         DeviceEvent *e = &event->device_event;
-
         if (e->detail.key > 0xFF) {
             ret = BadMatch;
             goto out;
@@ -147,17 +158,9 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         count = 1;
         core->u.u.type = e->type - ET_KeyPress + KeyPress;
         core->u.u.detail = e->detail.key & 0xFF;
-        core->u.keyButtonPointer.time = e->time;
-        //core->u.keyButtonPointer.eventX = e->root_x - last_mouse_eventX;
-        //core->u.keyButtonPointer.eventY = e->root_y - last_mouse_eventY;
-        //core->u.keyButtonPointer.eventX = 0;
-        //core->u.keyButtonPointer.eventY = 0;
-        fprintf(stderr, "eventx: %d, eventy:%d, valuator.data[0]:%d, valuator.data[1]:%d\n", core->u.keyButtonPointer.eventX, core->u.keyButtonPointer.eventY, e->valuators.data[0], e->valuators.data[1]);
-        
+        core->u.keyButtonPointer.time  = e->time;
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
-        //last_mouse_eventX = e->root_x;
-        //last_mouse_eventY = e->root_y;
         core->u.keyButtonPointer.state = e->corestate;
         core->u.keyButtonPointer.root = e->root;
         EventSetKeyRepeatFlag(core, (e->type == ET_KeyPress && e->key_repeat));
@@ -181,7 +184,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         core->u.u.type = e->type - ET_KeyPress + KeyPress;
         core->u.u.detail = e->detail.key & 0xFF;
         #ifndef STOP_BENCH
-        core->u.keyButtonPointer.time  = keyboard_eventID & 0xffffffff;
+        core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
         //timeTracker[timeheader].array[3] = (long)gettime_nanoTime();//nsTenvent_send
         //fprintf(stderr, "array[3]: %ld\n", timeTracker[timeheader].array[3]);
         //fprintf(stderr, "timeheader reuse: %d\n", timeheader);
@@ -386,16 +389,10 @@ eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count)
     kbp->detail = ev->detail.button;
     kbp->time = ev->time;
     kbp->root = ev->root;
-    fprintf(stderr, "calculating event_x,y in kbp\n");
-    //kbp->event_x = ev->root_x - last_mouse_eventX;
-    //kbp->event_y = ev->root_y - last_mouse_eventY;
     kbp->root_x = ev->root_x;
     kbp->root_y = ev->root_y;
-    //last_mouse_eventX = ev->root_x;
-    //last_mouse_eventY = ev->root_y;
     kbp->deviceid = ev->deviceid;
     kbp->state = ev->corestate;
-    fprintf(stderr, "eventx: %d, eventy:%d, valuator.data[0]:%d, valuator.data[1]:%d\n", kbp->event_x, kbp->event_y, ev->valuators.data[0], ev->valuators.data[1]);
     EventSetKeyRepeatFlag((xEvent *) kbp,
                           (ev->type == ET_KeyPress && ev->key_repeat));
 
@@ -722,7 +719,7 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->type = GenericEvent;
     xde->extension = IReqCode;
     xde->evtype = GetXI2Type(ev->type);
-    xde->time = ev->time;
+    xde->time  = ev->time;
     xde->length = bytes_to_int32(len - sizeof(xEvent));
     if (IsTouchEvent((InternalEvent *) ev))
         xde->detail = ev->touchid;
@@ -734,14 +731,8 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->valuators_len = vallen;
     xde->deviceid = ev->deviceid;
     xde->sourceid = ev->sourceid;
-    fprintf(stderr, "eventToDeviceEvent XI2\n");
-    //xde->event_x = double_to_fp1616(ev->root_x + ev->root_x_frac) - (last_mouse_eventX);
-    //xde->event_y = double_to_fp1616(ev->root_y + ev->root_y_frac) - (last_mouse_eventY);
     xde->root_x = double_to_fp1616(ev->root_x + ev->root_x_frac);
     xde->root_y = double_to_fp1616(ev->root_y + ev->root_y_frac);
-    fprintf(stderr, "eventx: %d, eventy:%d, valuator.data[0]:%d, valuator.data[1]:%d\n", xde->event_x, xde->event_y, ev->valuators.data[0], ev->valuators.data[1]);
-    //last_mouse_eventX = xde->root_x;
-    //last_mouse_eventY = xde->root_y;
 
     if (IsTouchEvent((InternalEvent *)ev)) {
         if (ev->type == ET_TouchUpdate)
@@ -826,7 +817,7 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     raw->type = GenericEvent;
     raw->extension = IReqCode;
     raw->evtype = GetXI2Type(ev->type);
-    raw->time = ev->time;
+    raw->time  = ev->time;
     raw->length = bytes_to_int32(len - sizeof(xEvent));
     raw->detail = ev->detail.button;
     raw->deviceid = ev->deviceid;
