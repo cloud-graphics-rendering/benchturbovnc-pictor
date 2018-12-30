@@ -171,3 +171,15 @@ https://www.turbovnc.org/
 download and sudo dpkg -i xxx.deb
 
 If you want our TurboVNC with timing measurement feature, you can use this git or download our binary from HERE(TO DO)
+
+You should install TurboVNC, Libjpeg and VirtualGL on server side. Meanwhile, you need install TurboVNC and Libjpeg on client side.
+
+How to use this vnc?
+After installing turboVNC, Libjpeg, VirtualGl.
+1. set passwd on server.
+   $ /opt/TurboVNC/bin/vncpasswd
+2. launch a session on server.
+   $ /opt/TurboVNC/bin/vncserver -3dwm
+3. Now, you can connect to this session on client.
+   $ /opt/TurboVNC/bin/vncviewer serverip:5901
+
