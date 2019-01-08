@@ -1299,7 +1299,8 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
             input_eventID++;
             timeheader++;
             timeheader = (timeheader==NUM_ROW)?0:timeheader;
-            if(msg.pe.buttonMask & 0x81 != 0){
+            //if(msg.pe.buttonMask & 0x81 != 0){
+            //if(msg.pe.buttonMask & 0x81 != 0){
               long t1_microTime = Swap64IfLE(msg.ke.sendL_microTime);
               long t2_microTime = gettime_microTime();
               timeTracker[timeheader].eventID = input_eventID;
@@ -1307,13 +1308,14 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
               timeTracker[timeheader].array[0] = (long)Swap64IfLE(msg.ke.sendL_nanoTime);//input send
               timeTracker[timeheader].array[1] = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
               timeTracker[timeheader].array[2] = (long)gettime_nanoTime();//input recv
-            }else{
-              timeTracker[timeheader].valid = 0;
-            }
+            //}else{
+            //  timeTracker[timeheader].valid = 0;
+            //}
             #endif
             cl->cursorX = (int)Swap16IfLE(msg.pe.x);
             cl->cursorY = (int)Swap16IfLE(msg.pe.y);
             PtrAddEvent(msg.pe.buttonMask, cl->cursorX, cl->cursorY, cl);
+            fprintf(stderr,"Pointer Events: x: %d, y: %d\n", cl->cursorX, cl->cursorY);
         }
         return;
 
