@@ -129,7 +129,7 @@ int ProcInitialConnection();
 #include "xkbsrv.h"
 #include "site.h"
 #include "client.h"
-
+#include "timetrack.h"
 #ifdef XSERVER_DTRACE
 #include "registry.h"
 #include "probes.h"
@@ -149,6 +149,10 @@ PaddingInfo PixmapWidthPaddingInfo[33];
 
 static ClientPtr grabClient;
 
+extern unsigned int t2p_microTime_back_clear;
+extern timeTrack* timeTracker;
+extern int appreqID;
+extern int timeTrackerItem;
 #define GrabNone 0
 #define GrabActive 1
 static int grabState = GrabNone;
@@ -2063,6 +2067,29 @@ ProcPutImage(ClientPtr client)
     (*pGC->ops->PutImage) (pDraw, pGC, stuff->depth, stuff->dstX, stuff->dstY,
                            stuff->width, stuff->height,
                            stuff->leftPad, stuff->format, tmpImage);
+    //int index = 10;
+    //while(index--)
+        //fprintf(stderr, "%x, %x, %x, %x, %x, %x, %x, %x\n", tmpImage[index*8]&0xff, tmpImage[index*8+1]&0xff, tmpImage[index*8+2]&0xff, tmpImage[index*8+3]&0xff, tmpImage[index*8+4]&0xff, tmpImage[index*8+5]&0xff, tmpImage[index*8+6]&0xff, tmpImage[index*8+7]&0xff);
+
+    fprintf(stderr, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    //XImage *xi = (XImage*)tmpImage;
+    //fprintf(stderr, "data[0]:%x, data[1]: %x, data[2]: %x, data[3]: %x\n", xi->data[0], xi->data[1], xi->data[2], xi->data[3]);
+    if((tmpImage[0] & 0xff)==0xde && (tmpImage[1] & 0xff)==0xad &&
+           (tmpImage[2] & 0xff)==0xbe && (tmpImage[3] & 0xff)==0xef){
+
+           appreqID = ((tmpImage[4] & 0xff) << 24 | (tmpImage[5] & 0xff) << 16 |
+                       (tmpImage[6] & 0xff) << 8 | (tmpImage[7] & 0xff)) & 0xffffffff;
+           t2p_microTime_back_clear = 0xdeadbeef;
+           int i;
+           for(i=0;i<NUM_ROW;i++){
+              if(timeTracker[i].eventID == appreqID && timeTracker[i].valid){
+                  timeTracker[i].array[7] = (long)gettime_nanoTime();//nsTreq_pickup
+                  timeTrackerItem = i;
+                  break;
+              }
+           }
+    }
+
 
     return Success;
 }
