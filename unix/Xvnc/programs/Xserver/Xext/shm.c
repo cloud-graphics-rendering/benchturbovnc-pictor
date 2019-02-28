@@ -93,10 +93,10 @@ in this Software without prior written authorization from The Open Group.
 
 #include "extinit.h"
 
-extern timeTrack* timeTracker;
-extern unsigned long gettime_nanoTime();
-int timeTrackerItem=0;
-int appreqID=0;
+//extern timeTrack* timeTracker;
+//extern unsigned long gettime_nanoTime();
+//int timeTrackerItem=0;
+//int appreqID=0;
 typedef struct _ShmScrPrivateRec {
     CloseScreenProcPtr CloseScreen;
     ShmFuncsPtr shmFuncs;
@@ -125,7 +125,7 @@ static DevPrivateKeyRec shmPixmapPrivateKeyRec;
 #define shmPixmapPrivateKey (&shmPixmapPrivateKeyRec)
 static ShmFuncs miFuncs = { NULL, NULL };
 static ShmFuncs fbFuncs = { fbShmCreatePixmap, NULL };
-unsigned int t2p_microTime_back_clear = 0;
+//unsigned int t2p_microTime_back_clear = 0;
 #define ShmGetScreenPriv(s) ((ShmScrPrivateRec *)dixLookupPrivate(&(s)->devPrivates, shmScrPrivateKey))
 
 #define VERIFY_SHMSEG(shmseg,shmdesc,client) \
@@ -592,7 +592,7 @@ ProcShmPutImage(ClientPtr client)
                                stuff->srcX, stuff->format,
                                shmdesc->addr + stuff->offset +
                                (stuff->srcY * length));
-        if((shmdesc->addr[0] & 0xff)==0xde && (shmdesc->addr[1] & 0xff)==0xad && 
+        /*if((shmdesc->addr[0] & 0xff)==0xde && (shmdesc->addr[1] & 0xff)==0xad && 
            (shmdesc->addr[2] & 0xff)==0xbe && (shmdesc->addr[3] & 0xff)==0xef){
 
            appreqID = ((shmdesc->addr[4] & 0xff) << 24 | (shmdesc->addr[5] & 0xff) << 16 | 
@@ -607,7 +607,7 @@ ProcShmPutImage(ClientPtr client)
                   break;
               }
            }
-        }
+        }*/
       }
     else{
         doShmPutImage(pDraw, pGC, stuff->depth, stuff->format,

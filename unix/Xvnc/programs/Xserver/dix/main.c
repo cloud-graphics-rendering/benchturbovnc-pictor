@@ -120,7 +120,7 @@ Equipment Corporation.
 
 #ifndef STOP_BENCH
 #include "timetrack.h"
-timeTrack* timeTracker;
+timeTrack* timeTracker=NULL;
 #endif
 
 
@@ -154,10 +154,9 @@ dix_main(int argc, char *argv[], char *envp[])
     int shmid = shmget(key, NUM_ROW*sizeof(timeTrack), 0666|IPC_CREAT);
     timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
     fprintf(stderr, "creating shared memory for time tracking in VNC server\n");
-    timeTracker->eventID = 0xdeadbeef;
-    timeTracker->valid     = 0xbeefdead;
-    for(i=0;i<TIME_COLUM;i++){
-        timeTracker->array[i] = i;
+    for(i=1;i<NUM_ROW;i++){
+    	timeTracker[i].valid     	= 0;
+    	timeTracker[i].eventID 	= 0;
     }
     #endif
     while (1) {
