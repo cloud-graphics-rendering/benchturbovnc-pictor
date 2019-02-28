@@ -71,11 +71,16 @@ in this Software without prior written authorization from the X Consortium.
 #include "rfb.h"
 #include "fb.h"
 #include "misc.h"
+#include "timetrack.h"
 
 extern WindowPtr *WindowTable;  /* Why isn't this in a header file? */
 
 int rfbDeferUpdateTime = 40;  /* ms */
 
+int timeTrackerItem = 0;
+int appreqID = 0;
+unsigned int t2p_microTime_back_clear = 0;
+extern timeTrack* timeTracker;
 
 static inline Bool is_visible(DrawablePtr drawable)
 {
@@ -621,6 +626,12 @@ static void rfbPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
     GC_OP_PROLOGUE(pDrawable, pGC);
 
     TRC((stderr, "rfbPutImage called\n"));
+    if(timeTracker[0].valid == 0xdeadbeef){
+	appreqID = timeTracker[0].eventID;	
+	timeTrackerItem = timeTracker[0].array[0];
+	t2p_microTime_back_clear = 0xdeadbeef;
+	timeTracker[0].valid = 0;
+    }
 
     box.x1 = x + pDrawable->x;
     box.y1 = y + pDrawable->y;

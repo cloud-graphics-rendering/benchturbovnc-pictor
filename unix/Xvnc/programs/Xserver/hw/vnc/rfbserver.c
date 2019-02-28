@@ -82,8 +82,8 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl);
 Bool rfbSendDesktopSize(rfbClientPtr cl);
 
 #ifndef STOP_BENCH
-int  input_eventID = -1;
-int  timeheader = -1;
+int  input_eventID = 0;
+int  timeheader = 0;
 
 extern timeTrack* timeTracker;
 extern int timeTrackerItem;
@@ -1263,7 +1263,7 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
 
               input_eventID++;
               timeheader++;
-              timeheader = (timeheader==NUM_ROW)?0:timeheader;
+              timeheader = (timeheader==NUM_ROW)?1:timeheader;
               //fprintf(stderr,"head: %d\n", timeheader);
               timeTracker[timeheader].eventID = input_eventID;
               timeTracker[timeheader].valid = 1;
@@ -1298,7 +1298,7 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
             #ifndef STOP_BENCH
             input_eventID++;
             timeheader++;
-            timeheader = (timeheader==NUM_ROW)?0:timeheader;
+            timeheader = (timeheader==NUM_ROW)?1:timeheader;
             //if(msg.pe.buttonMask & 0x81 != 0){
             //if(msg.pe.buttonMask & 0x81 != 0){
               long t1_microTime = Swap64IfLE(msg.ke.sendL_microTime);
