@@ -66,12 +66,13 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
-    System.out.println("RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp");
+    System.out.println("RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp, clientFPS");
   }
 
   public void readMsg() {
     if (nUpdateRectsLeft == 0) {
-
+      
+      
       int type = is.readU8();
       switch (type) {
         case RFB.FRAMEBUFFER_UPDATE:
@@ -134,25 +135,21 @@ public class CMsgReaderV3 extends CMsgReader {
       long time2_decode = System.nanoTime();
       long decode_time = time2_decode - time1_decode;
       decode_totalTime += decode_time;
-      //System.out.println("TotalDecoding:" + decode_totalTime);
 
       nUpdateRectsLeft--;
-      //System.out.println(nUpdateRectsLeft + "Decoding:" + decode_time);
       if (nUpdateRectsLeft == 0) {
+        long spf_cur = System.nanoTime();
 	handler.framebufferUpdateEnd();
 	recvL_mTime_ntp = System.currentTimeMillis() * 1000;
 	double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
-	//recvL_mTime_ref = System.nanoTime();
-	//double backDelay_ref = (recvL_mTime_ref - updateStart_nanoTime) * 1e-6;
+        double clientFPS = 1e9/(double)(spf_cur-spf_last);
         if(handle_uTime != 0xdeadbeefL){//data is valid
-	    //System.out.println("Decompression(ms)       : " + ((double)decode_totalTime)*1e-6);
-            //System.out.println("Network&Decompression(ms) : " + (backDelay_ntp - compression_time));
-            //System.out.println("ImageTransportTotal(ntp,ms) : " + backDelay_ntp + " (Compress/Transport/Decompression..overlaped)");
             double decompression_time = ((double)decode_totalTime)*1e-6;
             double network_decompression = backDelay_ntp - compression_time;
             double image_trans_ntp = backDelay_ntp;
-            System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp);
+            System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp +", "+clientFPS);
         }
+	spf_last = spf_cur;
       }
     }
   }
@@ -324,7 +321,7 @@ public class CMsgReaderV3 extends CMsgReader {
 
   int nUpdateRectsLeft;
   long sendL_uTime;
-  //long recvL_mTime_ref;
+  long spf_last;
   long recvL_mTime_ntp;
   long handle_uTime;
   long decode_totalTime;
