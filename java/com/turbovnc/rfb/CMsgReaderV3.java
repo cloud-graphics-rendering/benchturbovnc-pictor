@@ -197,18 +197,11 @@ public class CMsgReaderV3 extends CMsgReader {
     long nsTupdatebuffer_start = is.readU64();
     long nsTupdate_encoding = is.readU64();
     if(handle_uTime != 0xdeadbeefL){
-        //System.out.println("****************************************");
-        //System.out.println("RTT(ms)             : " + ((double)(System.nanoTime() - nsTinput_send)*1e-6));
-        //System.out.println("Server Handling(ms) : " + ((double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6));
-        //System.out.println("Game Handling(ms)   : " + ((double)(nsTreq_send - nsTevent_pickup)*1e-6));
-        //System.out.println("Input Transport(ms) : " + ((double)delta)*1e-3);
-        //System.out.println("Compression(ms)     : " + ((double)nsTupdate_encoding)*1e-6);
         RTT = (double)(System.nanoTime() - nsTinput_send)*1e-6;
         server_handling = (double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6;
         game_handling = (double)(nsTreq_send - nsTevent_pickup)*1e-6;
         input_transport = ((double)delta)*1e-3;
         compression_time = ((double)nsTupdate_encoding)*1e-6;
-        //System.out.println(((double)(System.nanoTime() - nsTinput_send)*1e-6), );
     }
     
   }
