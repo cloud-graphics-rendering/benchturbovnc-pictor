@@ -66,7 +66,7 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
-    System.out.println("RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp, clientFPS");
+    System.out.println("CurTime, RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp, clientFPS");
   }
 
   public void readMsg() {
@@ -147,7 +147,7 @@ public class CMsgReaderV3 extends CMsgReader {
             double decompression_time = ((double)decode_totalTime)*1e-6;
             double network_decompression = backDelay_ntp - compression_time;
             double image_trans_ntp = backDelay_ntp;
-            System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp +", "+clientFPS);
+            System.out.println(java.time.LocalDateTime.now()+", "+RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp +", "+clientFPS);
         }
 	spf_last = spf_cur;
       }
