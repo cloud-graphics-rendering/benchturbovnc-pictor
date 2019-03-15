@@ -153,8 +153,8 @@ dix_main(int argc, char *argv[], char *envp[])
     key_t key = ftok("shmfile",65);
     int shmid = shmget(key, NUM_ROW*sizeof(timeTrack), 0666|IPC_CREAT);
     timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
-    fprintf(stderr, "creating shared memory for time tracking in VNC server\n");
-    for(i=1;i<NUM_ROW;i++){
+    fprintf(stderr, "createshared memory for time tracking and initialize it\n");
+    for(i=0;i<NUM_ROW;i++){
     	timeTracker[i].valid     	= 0;
     	timeTracker[i].eventID 	= 0;
     }
