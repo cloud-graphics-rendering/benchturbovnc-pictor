@@ -50,11 +50,13 @@
 #include "xiquerydevice.h"
 #include "xkbsrv.h"
 #include "inpututils.h"
-#include "timetrack.h"
 
+#ifndef STOP_BENCH
+#include "timetrack.h"
 extern int input_eventID;
 extern timeTrack* timeTracker;
 extern int timeheader;
+#endif
 
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator * xv);
@@ -131,6 +133,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         core->u.u.detail = e->detail.key & 0xFF;
         #ifndef STOP_BENCH
         core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
+        timeTracker[timeheader].array[3] = (long)gettime_nanoTime();//nsTenvent_send
         #else
         core->u.keyButtonPointer.time  = e->time;
         #endif
@@ -146,6 +149,9 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
     case ET_ButtonPress:
     case ET_ButtonRelease:
     {
+        #ifndef STOP_BENCH
+        timeTracker[timeheader].valid = 0;//we do not care about ButtonPress and Release Event
+        #endif
         DeviceEvent *e = &event->device_event;
         if (e->detail.key > 0xFF) {
             ret = BadMatch;
@@ -185,9 +191,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         core->u.u.detail = e->detail.key & 0xFF;
         #ifndef STOP_BENCH
         core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
-        //timeTracker[timeheader].array[3] = (long)gettime_nanoTime();//nsTenvent_send
-        //fprintf(stderr, "array[3]: %ld\n", timeTracker[timeheader].array[3]);
-        //fprintf(stderr, "timeheader reuse: %d\n", timeheader);
+        timeTracker[timeheader].array[3] = (long)gettime_nanoTime();//nsTenvent_send
         #else
         core->u.keyButtonPointer.time  = e->time;
         #endif

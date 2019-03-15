@@ -66,7 +66,7 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
-    System.out.println("RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp, clientFPS");
+    System.out.println("CurTime, RTT, ServerHandling, GameHandling, InputTransport, CompressionTime, DecompressionTime, Network_Decompression, ImageTrans_ntp, clientFPS");
   }
 
   public void readMsg() {
@@ -143,11 +143,11 @@ public class CMsgReaderV3 extends CMsgReader {
 	recvL_mTime_ntp = System.currentTimeMillis() * 1000;
 	double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
         double clientFPS = 1e9/(double)(spf_cur-spf_last);
-        if(handle_uTime != 0xdeadbeefL){//data is valid
+        if(handle_uTime != 0xdeadbeefL){
             double decompression_time = ((double)decode_totalTime)*1e-6;
             double network_decompression = backDelay_ntp - compression_time;
             double image_trans_ntp = backDelay_ntp;
-            System.out.println(RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp +", "+clientFPS);
+            System.out.println(java.time.LocalDateTime.now()+", "+RTT+", "+server_handling+", "+game_handling+", "+input_transport+", "+compression_time+", "+decompression_time+", "+network_decompression+", "+image_trans_ntp +", "+clientFPS);
         }
 	spf_last = spf_cur;
       }
@@ -196,6 +196,7 @@ public class CMsgReaderV3 extends CMsgReader {
     long nsTreq_pickup = is.readU64();//array[7]
     long nsTupdatebuffer_start = is.readU64();
     long nsTupdate_encoding = is.readU64();
+    handle_uTime = nsTinput_send & 0xffffffffL;
     if(handle_uTime != 0xdeadbeefL){
         RTT = (double)(System.nanoTime() - nsTinput_send)*1e-6;
         server_handling = (double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6;
