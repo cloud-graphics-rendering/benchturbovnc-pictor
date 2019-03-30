@@ -2084,7 +2084,7 @@ ProcPutImage(ClientPtr client)
            int i;
            for(i=0;i<NUM_ROW;i++){
               if(timeTracker[i].eventID == appreqID && timeTracker[i].valid){
-                  timeTracker[i].array[7] = (long)gettime_nanoTime();//nsTreq_pickup
+                  timeTracker[i].array[7] = (unsigned int)gettime_nanoTime();//nsTreq_pickup
                   timeTrackerItem = i;
                   break;
               }

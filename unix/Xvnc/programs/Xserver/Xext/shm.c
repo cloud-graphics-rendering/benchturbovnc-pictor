@@ -94,7 +94,7 @@ in this Software without prior written authorization from The Open Group.
 #include "extinit.h"
 
 //extern timeTrack* timeTracker;
-//extern unsigned long gettime_nanoTime();
+//extern unsigned int gettime_nanoTime();
 //int timeTrackerItem=0;
 //int appreqID=0;
 typedef struct _ShmScrPrivateRec {
@@ -602,7 +602,7 @@ ProcShmPutImage(ClientPtr client)
            int i;
            for(i=0;i<NUM_ROW;i++){
               if(timeTracker[i].eventID == appreqID && timeTracker[i].valid){
-                  timeTracker[i].array[7] = (long)gettime_nanoTime();//nsTreq_pickup
+                  timeTracker[i].array[7] = (unsigned int)gettime_nanoTime();//nsTreq_pickup
                   timeTrackerItem = i;
                   break;
               }

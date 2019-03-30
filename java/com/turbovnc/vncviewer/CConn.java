@@ -1746,8 +1746,8 @@ public class CConn extends CConnection implements UserPasswdGetter,
     if (state() != RFBSTATE_NORMAL || shuttingDown || benchmark)
       return;
     try {
-      long sendL_nanoTime = System.nanoTime();
-      long sendL_microTime = System.currentTimeMillis() * 1000;
+      int sendL_nanoTime = (int)System.nanoTime();
+      int sendL_microTime = (int)System.currentTimeMillis() * 1000;
       //writer().writeKeyEvent(keysym, down);
       writer().writeKeyEvent(keysym, down, sendL_nanoTime, sendL_microTime);
     } catch (Exception e) {
@@ -2269,8 +2269,8 @@ public class CConn extends CConnection implements UserPasswdGetter,
     }
 
     try {
-      long sendL_nanoTime = System.nanoTime();
-      long sendL_microTime = System.currentTimeMillis() * 1000;
+      int sendL_nanoTime = (int)System.nanoTime();
+      int sendL_microTime = (int)System.currentTimeMillis() * 1000;
       writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask, sendL_nanoTime, sendL_microTime);
       //writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
     } catch (Exception e) {
@@ -2306,8 +2306,8 @@ public class CConn extends CConnection implements UserPasswdGetter,
       x = ev.getX();
       y = ev.getY();
       try {
-        long sendL_nanoTime = System.nanoTime();
-        long sendL_microTime = System.currentTimeMillis() * 1000;
+        int sendL_nanoTime = (int)System.nanoTime();
+        int sendL_microTime = (int)System.currentTimeMillis() * 1000;
         writer().writePointerEvent(new Point(x, y), wheelMask, sendL_nanoTime, sendL_microTime);
         writer().writePointerEvent(new Point(x, y), buttonMask, sendL_nanoTime, sendL_microTime);
         //writer().writePointerEvent(new Point(x, y), wheelMask);
