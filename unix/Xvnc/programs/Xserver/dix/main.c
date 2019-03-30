@@ -153,7 +153,7 @@ dix_main(int argc, char *argv[], char *envp[])
     key_t key = ftok("shmfile",65);
     int shmid = shmget(key, NUM_ROW*sizeof(timeTrack), 0666|IPC_CREAT);
     timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
-    fprintf(stderr, "createshared memory for time tracking and initialize it, addr: %p\n",timeTracker);
+    fprintf(stderr, "createshared memory for time tracking and initialize it, addr: %p, size: %d\n",timeTracker, NUM_ROW*sizeof(timeTrack));
     for(i=0;i<NUM_ROW;i++){
     	timeTracker[i].valid     	= 0;
     	timeTracker[i].eventID 	= 0;
