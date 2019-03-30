@@ -81,8 +81,8 @@ extern WindowPtr *WindowTable;  /* Why isn't this in a header file? */
 int rfbDeferUpdateTime = 40;  /* ms */
 
 #ifndef STOP_BENCH
-int timeTrackerItem = 0;
-int appreqID = 0;
+int timeTrackerItem = 1;
+int appreqID = 1;
 unsigned int t2p_microTime_back_clear = 0;
 extern timeTrack* timeTracker;
 #endif
