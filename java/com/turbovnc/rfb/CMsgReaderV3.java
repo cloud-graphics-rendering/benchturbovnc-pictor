@@ -140,7 +140,7 @@ public class CMsgReaderV3 extends CMsgReader {
       if (nUpdateRectsLeft == 0) {
         long spf_cur = System.nanoTime();
 	handler.framebufferUpdateEnd();
-	recvL_mTime_ntp = (int)System.currentTimeMillis() * 1000;
+	recvL_mTime_ntp = (long)System.currentTimeMillis() * 1000;
         double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
         double clientFPS = 1e9/(double)(spf_cur-spf_last);
         if(handle_uTime != 0xdeadbeefL){
@@ -158,9 +158,8 @@ public class CMsgReaderV3 extends CMsgReader {
     is.skip(1);
     nUpdateRectsLeft = is.readU16();
     is.skip(4);
-    sendL_uTime = ((long)is.readU32()) & 0xffffffffL;
-    //updateStart_nanoTime = (int)System.nanoTime();
-    long handle_uTime_tmp = ((long)is.readU32()) & 0xffffffffL;
+    sendL_uTime = is.readU64();
+    long handle_uTime_tmp = is.readU64();
     decode_totalTime = 0;
     //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
     // higher 32bits is 0xdeadbeef, which means the data is valid.     
@@ -184,22 +183,19 @@ public class CMsgReaderV3 extends CMsgReader {
   }
   
   void readBenchmarkingResults() {
-    //long deadbeef = is.readU64();
-    //String name = is.readString();
-    long nsTinput_send = ((long)is.readU32()) & 0xffffffffL;
-    long delta = ((long)is.readU32()) & 0xffffffffL;
-    long nsTinput_recv = ((long)is.readU32()) & 0xffffffffL;
-    long nsTevent_send = ((long)is.readU32()) & 0xffffffffL;//array[3]
-    long nsTevent_pickup = ((long)is.readU32()) & 0xffffffffL;
-    long nsTcopy = ((long)is.readU32()) & 0xffffffffL;
-    long nsTreq_send = ((long)is.readU32()) & 0xffffffffL;
-    long nsTreq_pickup = ((long)is.readU32()) & 0xffffffffL;//array[7]
-    long nsTupdatebuffer_start = ((long)is.readU32()) & 0xffffffffL;
-    long nsTupdate_encoding = ((long)is.readU32()) & 0xffffffffL;
+    long nsTinput_send = is.readU64();
+    long delta = is.readU64();
+    long nsTinput_recv = is.readU64();
+    long nsTevent_send = is.readU64();//array[3]
+    long nsTevent_pickup = is.readU64();
+    long nsTcopy = is.readU64();
+    long nsTreq_send = is.readU64();
+    long nsTreq_pickup = is.readU64();//array[7]
+    long nsTupdatebuffer_start = is.readU64();
+    long nsTupdate_encoding = is.readU64();
     handle_uTime = nsTinput_send & 0xffffffffL;
     if(handle_uTime != 0xdeadbeefL){
-        long now_time = System.nanoTime() & 0xffffffffL;
-        RTT = (double)(now_time - nsTinput_send)*1e-6;
+        RTT = (double)(System.nanoTime() - nsTinput_send)*1e-6;
         server_handling = (double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6;
         game_handling = (double)(nsTreq_send - nsTevent_pickup)*1e-6;
 

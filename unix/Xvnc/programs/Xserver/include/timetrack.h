@@ -13,7 +13,7 @@ typedef char *XPointer;
 typedef struct timeTrack{
     int eventID;
     int valid;
-    unsigned int array[TIME_COLUM];
+    long long array[TIME_COLUM];
 }timeTrack;
 
 

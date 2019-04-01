@@ -147,11 +147,11 @@ double gettime(void)
 }
 
 //long gettime_InuSec(void)
-unsigned int gettime_microTime(void)
+long long gettime_microTime(void)
 {
     struct timeval __tv;
     gettimeofday(&__tv, (struct timezone *)NULL);
-    return(unsigned int)(__tv.tv_sec * 1e6 + __tv.tv_usec);
+    return(long long)(__tv.tv_sec * 1e6 + __tv.tv_usec);
 }
 
 
@@ -162,12 +162,12 @@ unsigned int gettime_microPart(void)
     return(__tv.tv_usec);
 }
 
-unsigned int gettime_nanoTime(void)
+long long gettime_nanoTime(void)
 {
     struct timespec __tv;
     clock_gettime(CLOCK_MONOTONIC,&__tv);
     //clock_gettime(CLOCK_REALTIME,&__tv);
-    return(unsigned int)(__tv.tv_sec * 1e9 + __tv.tv_nsec);
+    return(long long)(__tv.tv_sec * 1e9 + __tv.tv_nsec);
 }
 
 
@@ -1258,8 +1258,8 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
         READ(((char *)&msg) + 1, sz_rfbKeyEventMsg - 1)
         if (!rfbViewOnly && !cl->viewOnly) {
             #ifndef STOP_BENCH
-              unsigned int t1_microTime = (unsigned int)Swap32IfLE(msg.ke.sendL_microTime);
-              unsigned int t2_microTime = (unsigned int)gettime_microTime();
+              long long t1_microTime = (long long)Swap64IfLE(msg.ke.sendL_microTime);
+              long long t2_microTime = (long long)gettime_microTime();
 
               input_eventID++;
               timeheader++;
@@ -1271,9 +1271,9 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
               }
               timeTracker[timeheader].eventID = input_eventID;
               timeTracker[timeheader].valid = 1;
-              timeTracker[timeheader].array[0] = (unsigned int)Swap32IfLE(msg.ke.sendL_nanoTime);//input send
+              timeTracker[timeheader].array[0] = (long long)Swap64IfLE(msg.ke.sendL_nanoTime);//input send
               timeTracker[timeheader].array[1] = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);//ntp
-              timeTracker[timeheader].array[2] = (unsigned int)gettime_nanoTime();//input recv
+              timeTracker[timeheader].array[2] = (long long)gettime_nanoTime();//input recv
             #endif
             KeyEvent((KeySym)Swap32IfLE(msg.ke.key), msg.ke.down);
         }
@@ -1304,13 +1304,13 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
             }else{
                 fprintf(stderr,"new record at index: %d\n", timeheader);
             }
-            unsigned int t1_microTime = (unsigned int)Swap32IfLE(msg.ke.sendL_microTime);
-            unsigned int t2_microTime = (unsigned int)gettime_microTime();
+            long long t1_microTime = (long long)Swap64IfLE(msg.ke.sendL_microTime);
+            long long t2_microTime = (long long)gettime_microTime();
             timeTracker[timeheader].eventID = input_eventID;
             timeTracker[timeheader].valid = 1;
-            timeTracker[timeheader].array[0] = (unsigned int)Swap32IfLE(msg.ke.sendL_nanoTime);//input send
+            timeTracker[timeheader].array[0] = (long long)Swap64IfLE(msg.ke.sendL_nanoTime);//input send
             timeTracker[timeheader].array[1] = (t2_microTime - t1_microTime) < 0 ? 0 : (t2_microTime - t1_microTime);
-            timeTracker[timeheader].array[2] = (unsigned int)gettime_nanoTime();//input recv
+            timeTracker[timeheader].array[2] = (long long)gettime_nanoTime();//input recv
             #endif
             cl->cursorX = (int)Swap16IfLE(msg.pe.x);
             cl->cursorY = (int)Swap16IfLE(msg.pe.y);
@@ -2015,16 +2015,16 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
      */
       if(t2p_microTime_back_clear == 0xdeadbeef && timeTracker[timeTrackerItem].valid){
         t2p_microTime_back_clear = 0xdeadbeee;
-        timeTracker[timeTrackerItem].array[8] = (unsigned int)gettime_nanoTime();//nsTupdatebuffer_start
+        timeTracker[timeTrackerItem].array[8] = (long long)gettime_nanoTime();//nsTupdatebuffer_start
         //timeTracker[timeTrackerItem].valid = 0;
-        fu->sendHandle_microTime = Swap32IfLE(0xdeadbeef);
+        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L);
       }else{
         t2p_microTime_back_clear = 0xdeadbeee;
-        fu->sendHandle_microTime = Swap32IfLE(0x00000000);
+        fu->sendHandle_microTime = Swap64IfLE(0x0000000000000000L);
         //timeTracker[timeTrackerItem].valid = 0;
       }
     
-    fu->sendL_uTime = Swap32IfLE(gettime_microTime());
+    fu->sendL_uTime = Swap64IfLE(gettime_microTime());
 
     if (REGION_NUM_RECTS(updateRegion) > rfbCombineRect) {
         RegionRec combinedUpdateRegion;
@@ -2289,7 +2289,7 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     }
     
     if(t2p_microTime_back_clear == 0xdeadbeee){
-      timeTracker[timeTrackerItem].array[9] = (unsigned int)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
+      timeTracker[timeTrackerItem].array[9] = (long long)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
     }
     t2p_microTime_back_clear = 0xdeadbeec;
 
@@ -2601,18 +2601,14 @@ static Bool rfbSendLastRectMarker(rfbClientPtr cl)
          timeTracker[timeTrackerItem].array[0]=0xdeadbeef & 0xffffffff;
       }
       for(i=0;i<TIME_COLUM;i++){
-         timeTracker[timeTrackerItem].array[i] = Swap32IfLE(timeTracker[timeTrackerItem].array[i]);
-         //timeTracker[timeTrackerItem].array[i] = Swap64IfLE(timeTracker[timeTrackerItem].array[i]);
+         timeTracker[timeTrackerItem].array[i] = Swap64IfLE(timeTracker[timeTrackerItem].array[i]);
       }
       char* deadbeef = (char *)&timeTracker[timeTrackerItem].array[0];
-      memcpy(&updateBuf[ublen], (char *)deadbeef, 4*TIME_COLUM);
-      //memcpy(&updateBuf[ublen], (char *)deadbeef, 8*TIME_COLUM);
+      memcpy(&updateBuf[ublen], (char *)deadbeef, 8*TIME_COLUM);
       t2p_microTime_back_clear = 0;
       timeTracker[timeTrackerItem].valid = 0;
     }
-    //timeTrackerItem = -1;
-    ublen += 4*TIME_COLUM;
-    //ublen += 8*TIME_COLUM;
+    ublen += 8*TIME_COLUM;
     return TRUE;
 }
 
@@ -2780,7 +2776,7 @@ Bool rfbSendDesktopSize(rfbClientPtr cl)
 
     fu.type = rfbFramebufferUpdate;
     fu.nRects = Swap16IfLE(1);
-    fu.sendL_uTime = Swap32IfLE(gettime_microTime());
+    fu.sendL_uTime = Swap64IfLE(gettime_microTime());
     if (WriteExact(cl, (char *)&fu, sz_rfbFramebufferUpdateMsg) < 0) {
         rfbLogPerror("rfbSendDesktopSize: write");
         rfbCloseClient(cl);
