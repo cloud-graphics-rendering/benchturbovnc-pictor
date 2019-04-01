@@ -1264,11 +1264,11 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
               input_eventID++;
               timeheader++;
               timeheader = (timeheader==NUM_ROW)?1:timeheader;
-              if(timeTracker[timeheader].valid == 1){
+              /*if(timeTracker[timeheader].valid == 1){
                   fprintf(stderr,"index: %d is covered by new event\n", timeheader);
               }else{
                   fprintf(stderr,"new record at index: %d\n", timeheader);
-              }
+              }*/
               timeTracker[timeheader].eventID = input_eventID;
               timeTracker[timeheader].valid = 1;
               timeTracker[timeheader].array[0] = (long long)Swap64IfLE(msg.ke.sendL_nanoTime);//input send
@@ -1299,11 +1299,11 @@ static void rfbProcessClientNormalMessage(rfbClientPtr cl)
             input_eventID++;
             timeheader++;
             timeheader = (timeheader==NUM_ROW)?1:timeheader;
-            if(timeTracker[timeheader].valid == 1){
+            /*if(timeTracker[timeheader].valid == 1){
                  fprintf(stderr,"index: %d is covered by new event\n", timeheader);
             }else{
                 fprintf(stderr,"new record at index: %d\n", timeheader);
-            }
+            }*/
             long long t1_microTime = (long long)Swap64IfLE(msg.ke.sendL_microTime);
             long long t2_microTime = (long long)gettime_microTime();
             timeTracker[timeheader].eventID = input_eventID;
