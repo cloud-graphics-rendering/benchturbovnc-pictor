@@ -619,8 +619,8 @@ typedef struct _rfbFramebufferUpdateMsg {
     CARD8 pad;
     CARD16 nRects;
     CARD32 pad2;
-    CARD32 sendL_uTime;
-    CARD32 sendHandle_microTime;
+    CARD64 sendL_uTime;
+    CARD64 sendHandle_microTime;
     /* followed by nRects rectangles */
 } rfbFramebufferUpdateMsg;
 
@@ -1263,8 +1263,8 @@ typedef struct _rfbKeyEventMsg {
     CARD8 down;                 /* true if down (press), false if up */
     CARD16 pad;
     CARD32 key;                 /* key is specified as an X keysym */
-    CARD32 sendL_nanoTime;	/* record the time of send from client based on start time */
-    CARD32 sendL_microTime;	/* record the time of send from client based on Epoch time */
+    CARD64 sendL_nanoTime;	/* record the time of send from client based on start time */
+    CARD64 sendL_microTime;	/* record the time of send from client based on Epoch time */
 } rfbKeyEventMsg;
 
 #define sz_rfbKeyEventMsg sizeof(struct _rfbKeyEventMsg)
@@ -1280,8 +1280,8 @@ typedef struct _rfbPointerEventMsg {
     CARD16 x;
     CARD16 y;
     CARD16 pad;
-    CARD32 sendL_nanoTime;	/* record the time of send from client based on start time */
-    CARD32 sendL_microTime;	/* record the time of send from client based on Epoch time */
+    CARD64 sendL_nanoTime;	/* record the time of send from client based on start time */
+    CARD64 sendL_microTime;	/* record the time of send from client based on Epoch time */
     
 } rfbPointerEventMsg;
 
