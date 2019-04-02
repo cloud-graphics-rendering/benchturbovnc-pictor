@@ -119,8 +119,11 @@ Equipment Corporation.
 #endif
 
 #ifndef STOP_BENCH
+#include <unistd.h>
 #include "timetrack.h"
 timeTrack* timeTracker=NULL;
+char *num_string[32];
+extern int rfbPort;
 #endif
 
 
@@ -149,8 +152,26 @@ dix_main(int argc, char *argv[], char *envp[])
 
     alwaysCheckForInput[0] = 0;
     alwaysCheckForInput[1] = 1;
+
     #ifndef STOP_BENCH
-    key_t key = ftok("shmfile",65);
+    char hostname[256];
+    char *home = getenv("HOME");
+    char *vncfolder = "/.vnc/";
+    gethostname(hostname, sizeof(hostname));
+    snprintf(num_string, sizeof(num_string), "%d",rfbPort-5900);
+    //char *num_string = getenv("DISPLAY");
+    //char *num_string = rfbPortString;//rfbPort to string
+    char *posfix = ".pid";
+    char *filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
+    strcpy(filename, home);
+    strcat(filename, vncfolder);
+    strcat(filename, hostname);
+    strcat(filename, ":");
+    strcat(filename, num_string);
+    strcat(filename, posfix);
+    key_t key = ftok(filename, 65);
+    fprintf(stderr, "filename:%s, shm key: %d\n", filename, key);
+    //key_t key = ftok("shmfile", 65);
     int shmid = shmget(key, NUM_ROW*sizeof(timeTrack), 0666|IPC_CREAT);
     timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
     fprintf(stderr, "createshared memory for time tracking and initialize it, addr: %p, size: %d\n",timeTracker, NUM_ROW*sizeof(timeTrack));
