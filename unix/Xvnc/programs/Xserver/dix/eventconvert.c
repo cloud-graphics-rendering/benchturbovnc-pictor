@@ -191,7 +191,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         core->u.u.detail = e->detail.key & 0xFF;
         #ifndef STOP_BENCH
         core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
-        timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
+        //timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
         #else
         core->u.keyButtonPointer.time  = e->time;
         #endif

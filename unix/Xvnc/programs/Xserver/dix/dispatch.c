@@ -135,6 +135,8 @@ int ProcInitialConnection();
 #include "probes.h"
 #endif
 
+#include <sys/syscall.h>
+
 #define mskcnt ((MAXCLIENTS + 31) / 32)
 #define BITMASK(i) (1U << ((i) & 31))
 #define MASKIDX(i) ((i) >> 5)
@@ -467,6 +469,9 @@ Dispatch(void)
                     if (ext)
                         client->minorOp = ext->MinorOpcode(client);
                 }
+                pid_t cur_pid = getpid();
+                pid_t cur_tid = syscall(SYS_gettid);
+                fprintf(stderr, "PID%d TID%d, in dispatch %lld\n", cur_pid, cur_tid, gettime_nanoTime());
 #ifdef XSERVER_DTRACE
                 if (XSERVER_REQUEST_START_ENABLED())
                     XSERVER_REQUEST_START(LookupMajorName(client->majorOp),

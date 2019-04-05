@@ -40,6 +40,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/syscall.h>
 #include <arpa/inet.h>
 #include "windowstr.h"
 #include "timetrack.h"
@@ -88,6 +89,7 @@ int  timeheader = 0;
 extern timeTrack* timeTracker;
 extern int timeTrackerItem;
 extern unsigned int t2p_microTime_back_clear;
+extern long long gettime_nanoTime();
 #endif
 
 /*
@@ -2013,6 +2015,10 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     /*
      * Now send the update.
      */
+      pid_t cur_pid = getpid();
+      pid_t cur_tid = syscall(SYS_gettid);
+      fprintf(stderr, "PID:%d, TID:%d, print in rfbserverUpdateFrameBuffer, Time: %lld, \n", cur_pid, cur_tid, gettime_nanoTime());
+
       if(t2p_microTime_back_clear == 0xdeadbeef && timeTracker[timeTrackerItem].valid){
         t2p_microTime_back_clear = 0xdeadbeee;
         timeTracker[timeTrackerItem].array[8] = (long long)gettime_nanoTime();//nsTupdatebuffer_start

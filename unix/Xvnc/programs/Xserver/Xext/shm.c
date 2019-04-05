@@ -35,6 +35,7 @@ in this Software without prior written authorization from The Open Group.
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -93,10 +94,10 @@ in this Software without prior written authorization from The Open Group.
 
 #include "extinit.h"
 
-//extern timeTrack* timeTracker;
-//extern unsigned int gettime_nanoTime();
-//int timeTrackerItem=0;
-//int appreqID=0;
+extern timeTrack* timeTracker;
+extern long long gettime_nanoTime();
+//int timeTrackerItem=1;
+//int appreqID=1;
 typedef struct _ShmScrPrivateRec {
     CloseScreenProcPtr CloseScreen;
     ShmFuncsPtr shmFuncs;
@@ -602,12 +603,15 @@ ProcShmPutImage(ClientPtr client)
            int i;
            for(i=0;i<NUM_ROW;i++){
               if(timeTracker[i].eventID == appreqID && timeTracker[i].valid){
-                  timeTracker[i].array[7] = (unsigned int)gettime_nanoTime();//nsTreq_pickup
+                  timeTracker[i].array[7] = (long long)gettime_nanoTime();//nsTreq_pickup
                   timeTrackerItem = i;
                   break;
               }
            }
         }*/
+        pid_t cur_pid = getpid();
+        pid_t cur_tid = syscall(SYS_gettid);
+        fprintf(stderr, "PID:%d, TID:%d, print in shm, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
       }
     else{
         doShmPutImage(pDraw, pGC, stuff->depth, stuff->format,

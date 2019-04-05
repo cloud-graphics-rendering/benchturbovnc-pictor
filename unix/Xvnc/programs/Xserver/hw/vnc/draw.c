@@ -74,10 +74,10 @@ in this Software without prior written authorization from the X Consortium.
 
 #ifndef STOP_BENCH
 #include "timetrack.h"
+#include <sys/syscall.h>
 #endif
 
 extern WindowPtr *WindowTable;  /* Why isn't this in a header file? */
-
 int rfbDeferUpdateTime = 40;  /* ms */
 
 #ifndef STOP_BENCH
@@ -85,6 +85,7 @@ int timeTrackerItem = 1;
 int appreqID = 1;
 unsigned int t2p_microTime_back_clear = 0;
 extern timeTrack* timeTracker;
+extern long long gettime_nanoTime();
 #endif
 
 static inline Bool is_visible(DrawablePtr drawable)
@@ -656,6 +657,10 @@ static void rfbPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 
     (*pGC->ops->PutImage) (pDrawable, pGC, depth, x, y, w, h, leftPad, format,
                            pBits);
+    pid_t cur_pid = getpid();
+    pid_t cur_tid = syscall(SYS_gettid);
+    fprintf(stderr, "PID:%d, TID:%d, print in draw, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
+
     SCHEDULE_FB_UPDATE(pDrawable->pScreen, prfb);
 
     GC_OP_EPILOGUE(pGC);
