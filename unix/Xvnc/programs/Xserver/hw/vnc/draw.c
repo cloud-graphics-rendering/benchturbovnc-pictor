@@ -657,9 +657,9 @@ static void rfbPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 
     (*pGC->ops->PutImage) (pDrawable, pGC, depth, x, y, w, h, leftPad, format,
                            pBits);
-    pid_t cur_pid = getpid();
-    pid_t cur_tid = syscall(SYS_gettid);
-    fprintf(stderr, "PID:%d, TID:%d, print in draw, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
+    //pid_t cur_pid = getpid();
+    //pid_t cur_tid = syscall(SYS_gettid);
+    //fprintf(stderr, "PID:%d, TID:%d, print in draw, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
 
     SCHEDULE_FB_UPDATE(pDrawable->pScreen, prfb);
 

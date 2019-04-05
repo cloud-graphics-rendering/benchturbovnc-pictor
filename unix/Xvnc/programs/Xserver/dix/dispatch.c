@@ -469,9 +469,9 @@ Dispatch(void)
                     if (ext)
                         client->minorOp = ext->MinorOpcode(client);
                 }
-                pid_t cur_pid = getpid();
-                pid_t cur_tid = syscall(SYS_gettid);
-                fprintf(stderr, "PID%d TID%d, in dispatch %lld\n", cur_pid, cur_tid, gettime_nanoTime());
+                //pid_t cur_pid = getpid();
+                //pid_t cur_tid = syscall(SYS_gettid);
+                //fprintf(stderr, "PID%d TID%d, in dispatch %lld\n", cur_pid, cur_tid, gettime_nanoTime());
 #ifdef XSERVER_DTRACE
                 if (XSERVER_REQUEST_START_ENABLED())
                     XSERVER_REQUEST_START(LookupMajorName(client->majorOp),

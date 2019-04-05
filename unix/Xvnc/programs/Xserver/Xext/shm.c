@@ -609,9 +609,9 @@ ProcShmPutImage(ClientPtr client)
               }
            }
         }*/
-        pid_t cur_pid = getpid();
-        pid_t cur_tid = syscall(SYS_gettid);
-        fprintf(stderr, "PID:%d, TID:%d, print in shm, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
+        //pid_t cur_pid = getpid();
+        //pid_t cur_tid = syscall(SYS_gettid);
+        //fprintf(stderr, "PID:%d, TID:%d, print in shm, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
       }
     else{
         doShmPutImage(pDraw, pGC, stuff->depth, stuff->format,

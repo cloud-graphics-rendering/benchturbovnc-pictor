@@ -2015,9 +2015,9 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     /*
      * Now send the update.
      */
-      pid_t cur_pid = getpid();
-      pid_t cur_tid = syscall(SYS_gettid);
-      fprintf(stderr, "PID:%d, TID:%d, print in rfbserverUpdateFrameBuffer, Time: %lld, \n", cur_pid, cur_tid, gettime_nanoTime());
+      //pid_t cur_pid = getpid();
+      //pid_t cur_tid = syscall(SYS_gettid);
+      //fprintf(stderr, "PID:%d, TID:%d, print in rfbserverUpdateFrameBuffer, Time: %lld, \n", cur_pid, cur_tid, gettime_nanoTime());
 
       if(t2p_microTime_back_clear == 0xdeadbeef && timeTracker[timeTrackerItem].valid){
         t2p_microTime_back_clear = 0xdeadbeee;
