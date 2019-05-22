@@ -66,7 +66,7 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
-    System.out.println("CurTime, RTT, ServerHandling, GameHandling, VncServerToGame, GameToBeforeCompression, CompressionTime, DecompressionTime, InputTransport, Network_Decompression, ImageTrans_ntp, clientFPS");
+    System.out.println("CurTime,RTT,ServerHandling,GameHandling,VncServerToGame,GameToBeforeCompression,CompressionTime,DecompressionTime,InputTransport,Network_Decompression,ImageTrans_ntp,clientFPS");
   }
 
   public void readMsg() {
