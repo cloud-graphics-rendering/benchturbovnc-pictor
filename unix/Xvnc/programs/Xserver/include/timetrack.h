@@ -16,6 +16,12 @@ typedef struct timeTrack{
     long long array[TIME_COLUM];
 }timeTrack;
 
+struct fd_pair{
+   pid_t pid;    // the file name is /tmp/vgl/pid
+   FILE *fd;
+   int   status; //0 closed, 1 open.
+   struct fd_pair *next;
+};
 
 /*
  * Extensions need a way to hang private data on some structures.

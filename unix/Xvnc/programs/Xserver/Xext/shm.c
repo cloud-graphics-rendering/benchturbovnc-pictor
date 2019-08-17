@@ -96,6 +96,8 @@ in this Software without prior written authorization from The Open Group.
 
 extern timeTrack* timeTracker;
 extern long long gettime_nanoTime();
+int VncServerFrameNum = 0;
+long long VncFPS_tmp_time1 = 0;
 //int timeTrackerItem=1;
 //int appreqID=1;
 typedef struct _ShmScrPrivateRec {
@@ -516,9 +518,65 @@ doShmPutImage(DrawablePtr dst, GCPtr pGC,
     }
 }
 
+struct fd_pair *headerfd=NULL;
+FILE* getLogFilePointer(pid_t cur_pid){
+     struct fd_pair *tmpfd = headerfd;
+     struct fd_pair *lstfd = NULL;
+     int try_find = 0;
+
+     char str1[10];
+     char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
+
+     while(tmpfd!=NULL){
+         if(tmpfd->pid != cur_pid){
+             lstfd = tmpfd;
+             tmpfd = tmpfd->next;
+             try_find = 1;
+         }else{
+             return tmpfd->fd;
+         }
+     }
+     if(tmpfd == NULL){
+          tmpfd = (struct fd_pair*)malloc(sizeof(struct fd_pair));
+          tmpfd->pid = cur_pid;
+          sprintf(str1, "%d", cur_pid);
+          strcat(logpath, str1);
+          tmpfd->fd = fopen(logpath, "ab+");
+          //fprintf(globalLog, "logpath:%s, fd: %p\n", logpath, tmpfd->fd);
+          tmpfd->status = 1;
+          tmpfd->next = NULL;
+          if(try_find == 0){
+             headerfd = tmpfd;
+          }else{
+             lstfd->next = tmpfd;
+          }
+          return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
+     }
+}
+
 static int
 ProcShmPutImage(ClientPtr client)
 {
+
+    VncServerFrameNum++;
+    long long tmp_time2=0;
+    if(VncServerFrameNum >= 60){//61
+          tmp_time2 = (long long)gettime_nanoTime();//nsTreq_pickup
+          double VncServerFPS = 60.0*1000000000/(tmp_time2-VncFPS_tmp_time1);
+          VncServerFrameNum=0;
+
+          pid_t cur_pid = getpid();
+          pid_t cur_tid = syscall(SYS_gettid);
+          FILE* tmpFp = getLogFilePointer(cur_pid);
+          //if(tmpFp == NULL){
+          //    fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
+          //}
+          fprintf(tmpFp, "VncFPS %lf PID %d TID %d print-in-shm\n",VncServerFPS, cur_pid, cur_tid);
+    }
+    if(VncServerFrameNum == 0){
+          VncFPS_tmp_time1=tmp_time2;
+    }
+
     GCPtr pGC;
     DrawablePtr pDraw;
     long length;
