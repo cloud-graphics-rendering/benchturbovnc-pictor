@@ -98,8 +98,9 @@ extern timeTrack* timeTracker;
 extern long long gettime_nanoTime();
 int VncServerFrameNum = 0;
 long long VncFPS_tmp_time1 = 0;
-//int timeTrackerItem=1;
-//int appreqID=1;
+int timeTrackerItem=1;
+int appreqID=1;
+unsigned int t2p_microTime_back_clear = 0;
 typedef struct _ShmScrPrivateRec {
     CloseScreenProcPtr CloseScreen;
     ShmFuncsPtr shmFuncs;
@@ -128,7 +129,6 @@ static DevPrivateKeyRec shmPixmapPrivateKeyRec;
 #define shmPixmapPrivateKey (&shmPixmapPrivateKeyRec)
 static ShmFuncs miFuncs = { NULL, NULL };
 static ShmFuncs fbFuncs = { fbShmCreatePixmap, NULL };
-//unsigned int t2p_microTime_back_clear = 0;
 #define ShmGetScreenPriv(s) ((ShmScrPrivateRec *)dixLookupPrivate(&(s)->devPrivates, shmScrPrivateKey))
 
 #define VERIFY_SHMSEG(shmseg,shmdesc,client) \
@@ -651,22 +651,24 @@ ProcShmPutImage(ClientPtr client)
                                stuff->srcX, stuff->format,
                                shmdesc->addr + stuff->offset +
                                (stuff->srcY * length));
-        /*if((shmdesc->addr[0] & 0xff)==0xde && (shmdesc->addr[1] & 0xff)==0xad && 
+        if((shmdesc->addr[0] & 0xff)==0xde && (shmdesc->addr[1] & 0xff)==0xad && 
            (shmdesc->addr[2] & 0xff)==0xbe && (shmdesc->addr[3] & 0xff)==0xef){
 
            appreqID = ((shmdesc->addr[4] & 0xff) << 24 | (shmdesc->addr[5] & 0xff) << 16 | 
                        (shmdesc->addr[6] & 0xff) << 8 | (shmdesc->addr[7] & 0xff)) & 0xffffffff;
            //fprintf(stderr, "appreqID 1: %d\n", appreqID);
+           timeTrackerItem = ((shmdesc->addr[8] & 0xff) << 24 | (shmdesc->addr[9] & 0xff) << 16 | 
+                       (shmdesc->addr[10] & 0xff) << 8 | (shmdesc->addr[11] & 0xff)) & 0xffffffff;
            t2p_microTime_back_clear = 0xdeadbeef;
-           int i;
+           /*int i;
            for(i=0;i<NUM_ROW;i++){
               if(timeTracker[i].eventID == appreqID && timeTracker[i].valid){
                   timeTracker[i].array[7] = (long long)gettime_nanoTime();//nsTreq_pickup
                   timeTrackerItem = i;
                   break;
               }
-           }
-        }*/
+           }*/
+        }
         //pid_t cur_pid = getpid();
         //pid_t cur_tid = syscall(SYS_gettid);
         //fprintf(stderr, "PID:%d, TID:%d, print in shm, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());

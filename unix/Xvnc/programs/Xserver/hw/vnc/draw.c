@@ -81,11 +81,14 @@ extern WindowPtr *WindowTable;  /* Why isn't this in a header file? */
 int rfbDeferUpdateTime = 40;  /* ms */
 
 #ifndef STOP_BENCH
-int timeTrackerItem = 1;
-int appreqID = 1;
-unsigned int t2p_microTime_back_clear = 0;
-extern timeTrack* timeTracker;
-extern long long gettime_nanoTime();
+//extern int timeTrackerItem;
+//extern int appreqID;
+//extern int timeTrackerItem = 1;
+//extern int appreqID = 1;
+//extern unsigned int t2p_microTime_back_clear;
+//unsigned int t2p_microTime_back_clear = 0;
+//extern timeTrack* timeTracker;
+//extern long long gettime_nanoTime();
 #endif
 
 static inline Bool is_visible(DrawablePtr drawable)
@@ -632,6 +635,7 @@ static void rfbPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
     GC_OP_PROLOGUE(pDrawable, pGC);
 
     TRC((stderr, "rfbPutImage called\n"));
+    /*
     #ifndef STOP_BENCH
     if(timeTracker[0].valid == 0xdeadbeef){
 	appreqID = timeTracker[0].eventID;	
@@ -640,6 +644,7 @@ static void rfbPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 	timeTracker[0].valid = 0;
     }
     #endif
+    */
     box.x1 = x + pDrawable->x;
     box.y1 = y + pDrawable->y;
     box.x2 = box.x1 + w;
