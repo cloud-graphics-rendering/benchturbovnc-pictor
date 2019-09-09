@@ -198,6 +198,8 @@ public class CMsgReaderV3 extends CMsgReader {
     long nsTreq_pickup = is.readU64();//array[7]
     long nsTupdatebuffer_start = is.readU64();//array[8], before compression.
     long nsTupdate_encoding = is.readU64();
+    long nsBeforeCopy = is.readU64(); //array[10]
+    long nsAfterCopy  = is.readU64(); //array[11]
     handle_uTime = nsTinput_send & 0xffffffffL;
     if(handle_uTime != 0xdeadbeefL){
         RTT = (double)(System.nanoTime() - nsTinput_send)*1e-6;
