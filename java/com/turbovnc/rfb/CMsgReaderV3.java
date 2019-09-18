@@ -138,6 +138,7 @@ public class CMsgReaderV3 extends CMsgReader {
       decode_totalTime += decode_time;
 
       nUpdateRectsLeft--;
+      //System.out.println("nUpdateRectsLeft: " + nUpdateRectsLeft);
       if (nUpdateRectsLeft == 0){
         frame_num++;
         if(frame_num >= 60){

@@ -571,7 +571,8 @@ ProcShmPutImage(ClientPtr client)
           //if(tmpFp == NULL){
           //    fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
           //}
-          fprintf(tmpFp, "VncFPS %lf PID %d TID %d print-in-shm\n",VncServerFPS, cur_pid, cur_tid);
+          //fprintf(tmpFp, "VncFPS %lf PID %d TID %d print-in-shm\n",VncServerFPS, cur_pid, cur_tid);
+          fprintf(stderr, "VncFPS %lf PID %d TID %d print-in-shm\n",VncServerFPS, cur_pid, cur_tid);
     }
     if(VncServerFrameNum == 0){
           VncFPS_tmp_time1=tmp_time2;
