@@ -66,13 +66,12 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
-    System.out.println("CurTime,RTT,ServerHandling,GameHandling,VncServerToGame,GameToBeforeCompression,CompressionTime,DecompressionTime,InputTransport,Network_Decompression,ImageTrans_ntp,clientFPS");
+    System.out.println("CurTime,RTT,ServerHandling,GameHandling,CSI,SP,PSI,AL,ALEnd2FCStart,FC,ASF,CP,DecompressionTime,ImageTrans_ntp,Network_Decompression,clientFPS");
+    //System.out.println(java.time.LocalDateTime.now()+","+RTT+","+server_handling+","+game_handling+","+input_transport+","+SP+","+PSI+","+AL+","+ ALEnd2FCStart+","+FC+","+ASF+","+CP+","+decompression_time+","+image_trans_ntp +","+network_decompression+","+clientFPS);
   }
 
   public void readMsg() {
     if (nUpdateRectsLeft == 0) {
-      
-      
       int type = is.readU8();
       switch (type) {
         case RFB.FRAMEBUFFER_UPDATE:
@@ -104,6 +103,7 @@ public class CMsgReaderV3 extends CMsgReader {
       //int pad_nouse= is.readS32();
       //is.skip(4);
       //usRect_sendTime = is.readS64();
+      //System.out.println("x: " + x + "y: " + y + "w: " + w + "h: " + h);
 
       switch (encoding) {
         case RFB.ENCODING_NEW_FB_SIZE:
@@ -137,9 +137,13 @@ public class CMsgReaderV3 extends CMsgReader {
       decode_totalTime += decode_time;
 
       nUpdateRectsLeft--;
+      //System.out.println("nUpdateRectsLeft in 2: " + nUpdateRectsLeft);
       if (nUpdateRectsLeft == 0){
-        frame_num++;
-        if(frame_num >= 60){
+        if(TotalFrameID != LastTotalFrameID){
+            frame_num++;
+            LastTotalFrameID = TotalFrameID;
+        }
+        if(frame_num >= 10){
             long cur_fps_time = System.nanoTime();
             clientFPS = (double)(frame_num * 1e9)/(cur_fps_time - last_fps_time);
             last_fps_time = cur_fps_time;
@@ -148,11 +152,12 @@ public class CMsgReaderV3 extends CMsgReader {
 	handler.framebufferUpdateEnd();
 	recvL_mTime_ntp = (long)System.currentTimeMillis() * 1000;
         double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
+        //System.out.println(String.format("%x", handle_uTime));
         if(handle_uTime != 0xdeadbeefL){
             double decompression_time = ((double)decode_totalTime)*1e-6;
-            double network_decompression = backDelay_ntp - compression_time;
             double image_trans_ntp = backDelay_ntp;
-            System.out.println(java.time.LocalDateTime.now()+","+RTT+","+server_handling+","+game_handling+","+before_game+","+ReqToCompression+","+compression_time+","+decompression_time+","+ input_transport+","+network_decompression+","+image_trans_ntp +","+clientFPS);
+            double network_decompression = backDelay_ntp - CP;
+            System.out.println(java.time.LocalDateTime.now()+","+String.format("%9.02f",RTT)+","+String.format("%9.02f",server_handling)+","+String.format("%9.02f",game_handling)+","+String.format("%9.02f",input_transport)+","+String.format("%9.02f",SP)+","+String.format("%9.02f",PSI)+","+String.format("%9.02f",AL)+","+ String.format("%9.02f",ALEnd2FCStart)+","+String.format("%9.02f",FC)+","+String.format("%9.02f",ASF)+","+String.format("%9.02f",CP)+","+String.format("%9.02f",decompression_time)+","+String.format("%9.02f",image_trans_ntp) +","+String.format("%9.02f", network_decompression)+","+String.format("%9.02f",clientFPS));
         }
 	//spf_last = spf_cur;
       }
@@ -164,15 +169,16 @@ public class CMsgReaderV3 extends CMsgReader {
     nUpdateRectsLeft = is.readU16();
     is.skip(4);
     sendL_uTime = is.readU64();
-    long handle_uTime_tmp = is.readU64();
+    TotalFrameID = is.readU64();
     decode_totalTime = 0;
+    //System.out.println("nUpdateRectsLeft in 1: " + nUpdateRectsLeft + " TotalFrameID: "+TotalFrameID);
     //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
     // higher 32bits is 0xdeadbeef, which means the data is valid.     
-    if(handle_uTime_tmp == 0xdeadbeefL){
-	handle_uTime = handle_uTime_tmp;
-    }else{//data is invalid
-	handle_uTime = 0xdeadbeefL;
-    }
+    //if(handle_uTime_tmp == 0xdeadbeefL){
+    //	handle_uTime = handle_uTime_tmp;
+    //}else{
+    //	handle_uTime = 0xdeadbeefL;
+    //}
     
     handler.framebufferUpdateStart();
   }
@@ -193,24 +199,32 @@ public class CMsgReaderV3 extends CMsgReader {
     long nsTinput_recv = is.readU64();
     long nsTevent_send = is.readU64();//array[3]
     long nsTevent_pickup = is.readU64();
-    long nsTcopy = is.readU64();
+    long nsGameLogicDone = is.readU64();
     long nsTreq_send = is.readU64();
     long nsTreq_pickup = is.readU64();//array[7]
     long nsTupdatebuffer_start = is.readU64();//array[8], before compression.
     long nsTupdate_encoding = is.readU64();
+    long nsBeforeCopy = is.readU64(); //array[10]
+    long nsAfterCopy  = is.readU64(); //array[11]
     handle_uTime = nsTinput_send & 0xffffffffL;
     if(handle_uTime != 0xdeadbeefL){
-        RTT = (double)(System.nanoTime() - nsTinput_send)*1e-6;
+        RTT 		= (double)(System.nanoTime() - nsTinput_send)*1e-6;
+        input_transport = ((double)delta)*1e-3;
         server_handling = (double)(nsTupdatebuffer_start - nsTinput_recv + nsTupdate_encoding)*1e-6;
-        before_game = (double)(nsTevent_pickup - nsTinput_recv)*1e-6;
-        ReqToCompression = (double)(nsTupdatebuffer_start - nsTreq_send)*1e-6;
+        SP 		= (double)(nsTevent_send - nsTinput_recv)*1e-6;//time that events stay on VNCServer
+        PSI 		= (double)(nsTevent_pickup - nsTevent_send)*1e-6;//time that events waiting to be deal by app since they are sent.
+        AL  		= (double)(nsGameLogicDone - nsTevent_pickup)*1e-6;//App Logic for frame i on CPU
+        ALEnd2FCStart 	= (double)(nsBeforeCopy - nsGameLogicDone)*1e-6;//Time for FC(i-1) and AL(i+1)
+        FC            	= (double)(nsAfterCopy - nsBeforeCopy)*1e-6;//Time for Frame Copy
+        ASF 		= (double)(nsTupdatebuffer_start - nsTreq_send)*1e-6;
+        CP		= ((double)nsTupdate_encoding)*1e-6;
+        
+        //before_game = (double)(nsTevent_pickup - nsTinput_recv)*1e-6;
+        //ReqToCompression = (double)(nsTupdatebuffer_start - nsTreq_send)*1e-6;
         game_handling = (double)(nsTreq_send - nsTevent_pickup)*1e-6;
-
         if(game_handling < 0){
             System.out.println("negative game handling, [4]:"+ nsTevent_pickup+ "[6]:"+nsTreq_send);
         }
-        input_transport = ((double)delta)*1e-3;
-        compression_time = ((double)nsTupdate_encoding)*1e-6;
     }
     
   }
@@ -322,6 +336,8 @@ public class CMsgReaderV3 extends CMsgReader {
   }
 
   int nUpdateRectsLeft;
+  long LastTotalFrameID;
+  long TotalFrameID;
   long sendL_uTime;
   long last_fps_time;
   long frame_num;
@@ -332,11 +348,17 @@ public class CMsgReaderV3 extends CMsgReader {
   double clientFPS;
 
   double RTT;
+  double SP;
+  double PSI;
+  double AL;
+  double ALEnd2FCStart;
+  double FC;
+  double ASF;
   double server_handling;
   double before_game;
   double ReqToCompression;
   double game_handling;
   double input_transport;
-  double compression_time;
+  double CP;
   static LogWriter vlog = new LogWriter("CMsgReaderV3");
 }

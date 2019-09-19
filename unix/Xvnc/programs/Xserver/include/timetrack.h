@@ -5,7 +5,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
-#define TIME_COLUM 10
+#define TIME_COLUM 12
 #define NUM_ROW 1000
 
 typedef char *XPointer;

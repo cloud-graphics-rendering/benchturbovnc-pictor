@@ -88,6 +88,7 @@ int  timeheader = 0;
 
 extern timeTrack* timeTracker;
 extern int timeTrackerItem;
+extern long long TotalFrameID;
 extern unsigned int t2p_microTime_back_clear;
 extern long long gettime_nanoTime();
 #endif
@@ -2018,15 +2019,16 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
       //pid_t cur_pid = getpid();
       //pid_t cur_tid = syscall(SYS_gettid);
       //fprintf(stderr, "PID:%d, TID:%d, print in rfbserverUpdateFrameBuffer, Time: %lld, \n", cur_pid, cur_tid, gettime_nanoTime());
-
       if(t2p_microTime_back_clear == 0xdeadbeef && timeTracker[timeTrackerItem].valid){
         t2p_microTime_back_clear = 0xdeadbeee;
         timeTracker[timeTrackerItem].array[8] = (long long)gettime_nanoTime();//nsTupdatebuffer_start
         //timeTracker[timeTrackerItem].valid = 0;
-        fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L);
+        //fu->sendHandle_microTime = Swap64IfLE(0xdeadbeef00000000L);
+        fu->sendHandle_microTime = Swap64IfLE(TotalFrameID);
       }else{
         t2p_microTime_back_clear = 0xdeadbeee;
-        fu->sendHandle_microTime = Swap64IfLE(0x0000000000000000L);
+        //fu->sendHandle_microTime = Swap64IfLE(0x0000000000000000L);
+        fu->sendHandle_microTime = Swap64IfLE(TotalFrameID);
         //timeTracker[timeTrackerItem].valid = 0;
       }
     
