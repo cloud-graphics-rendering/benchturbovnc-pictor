@@ -72,8 +72,6 @@ public class CMsgReaderV3 extends CMsgReader {
 
   public void readMsg() {
     if (nUpdateRectsLeft == 0) {
-      
-      
       int type = is.readU8();
       switch (type) {
         case RFB.FRAMEBUFFER_UPDATE:
@@ -105,6 +103,7 @@ public class CMsgReaderV3 extends CMsgReader {
       //int pad_nouse= is.readS32();
       //is.skip(4);
       //usRect_sendTime = is.readS64();
+      //System.out.println("x: " + x + "y: " + y + "w: " + w + "h: " + h);
 
       switch (encoding) {
         case RFB.ENCODING_NEW_FB_SIZE:
@@ -138,10 +137,13 @@ public class CMsgReaderV3 extends CMsgReader {
       decode_totalTime += decode_time;
 
       nUpdateRectsLeft--;
-      //System.out.println("nUpdateRectsLeft: " + nUpdateRectsLeft);
+      //System.out.println("nUpdateRectsLeft in 2: " + nUpdateRectsLeft);
       if (nUpdateRectsLeft == 0){
-        frame_num++;
-        if(frame_num >= 60){
+        if(TotalFrameID != LastTotalFrameID){
+            frame_num++;
+            LastTotalFrameID = TotalFrameID;
+        }
+        if(frame_num >= 10){
             long cur_fps_time = System.nanoTime();
             clientFPS = (double)(frame_num * 1e9)/(cur_fps_time - last_fps_time);
             last_fps_time = cur_fps_time;
@@ -167,15 +169,16 @@ public class CMsgReaderV3 extends CMsgReader {
     nUpdateRectsLeft = is.readU16();
     is.skip(4);
     sendL_uTime = is.readU64();
-    long handle_uTime_tmp = is.readU64();
+    TotalFrameID = is.readU64();
     decode_totalTime = 0;
+    //System.out.println("nUpdateRectsLeft in 1: " + nUpdateRectsLeft + " TotalFrameID: "+TotalFrameID);
     //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
     // higher 32bits is 0xdeadbeef, which means the data is valid.     
-    if(handle_uTime_tmp == 0xdeadbeefL){
-	handle_uTime = handle_uTime_tmp;
-    }else{//data is invalid
-	handle_uTime = 0xdeadbeefL;
-    }
+    //if(handle_uTime_tmp == 0xdeadbeefL){
+    //	handle_uTime = handle_uTime_tmp;
+    //}else{
+    //	handle_uTime = 0xdeadbeefL;
+    //}
     
     handler.framebufferUpdateStart();
   }
@@ -333,6 +336,8 @@ public class CMsgReaderV3 extends CMsgReader {
   }
 
   int nUpdateRectsLeft;
+  long LastTotalFrameID;
+  long TotalFrameID;
   long sendL_uTime;
   long last_fps_time;
   long frame_num;

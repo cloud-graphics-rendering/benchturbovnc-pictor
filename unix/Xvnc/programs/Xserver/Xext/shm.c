@@ -101,6 +101,7 @@ long long VncFPS_tmp_time1 = 0;
 int timeTrackerItem=1;
 int appreqID=1;
 unsigned int t2p_microTime_back_clear = 0;
+long long TotalFrameID = 0;
 typedef struct _ShmScrPrivateRec {
     CloseScreenProcPtr CloseScreen;
     ShmFuncsPtr shmFuncs;
@@ -670,6 +671,7 @@ ProcShmPutImage(ClientPtr client)
               }
            }*/
         }
+        TotalFrameID++;
         //pid_t cur_pid = getpid();
         //pid_t cur_tid = syscall(SYS_gettid);
         //fprintf(stderr, "PID:%d, TID:%d, print in shm, Time: %lld\n", cur_pid, cur_tid, gettime_nanoTime());
