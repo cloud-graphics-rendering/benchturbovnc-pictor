@@ -66,7 +66,7 @@ public class CMsgReaderV3 extends CMsgReader {
       }
     }
     handler.serverInit();
-    System.out.println("CurTime,RTT,ServerHandling,GameHandling,CSI,SP,PSI,AL,ALEnd2FCStart,FC,ASF,CP,DecompressionTime,ImageTrans_ntp,Network_Decompression,clientFPS");
+    System.out.println("CurTime,RTT,ServerHandling,GameHandling,CSI,SP,PSI,AL,ALEnd2FCStart,FC,ASF,TBCP,CP,DecompressionTime,ImageTrans_ntp,Network_Decompression,clientFPS");
     //System.out.println(java.time.LocalDateTime.now()+","+RTT+","+server_handling+","+game_handling+","+input_transport+","+SP+","+PSI+","+AL+","+ ALEnd2FCStart+","+FC+","+ASF+","+CP+","+decompression_time+","+image_trans_ntp +","+network_decompression+","+clientFPS);
   }
 
@@ -157,7 +157,7 @@ public class CMsgReaderV3 extends CMsgReader {
             double decompression_time = ((double)decode_totalTime)*1e-6;
             double image_trans_ntp = backDelay_ntp;
             double network_decompression = backDelay_ntp - CP;
-            System.out.println(java.time.LocalDateTime.now()+","+String.format("%9.02f",RTT)+","+String.format("%9.02f",server_handling)+","+String.format("%9.02f",game_handling)+","+String.format("%9.02f",input_transport)+","+String.format("%9.02f",SP)+","+String.format("%9.02f",PSI)+","+String.format("%9.02f",AL)+","+ String.format("%9.02f",ALEnd2FCStart)+","+String.format("%9.02f",FC)+","+String.format("%9.02f",ASF)+","+String.format("%9.02f",CP)+","+String.format("%9.02f",decompression_time)+","+String.format("%9.02f",image_trans_ntp) +","+String.format("%9.02f", network_decompression)+","+String.format("%9.02f",clientFPS));
+            System.out.println(java.time.LocalDateTime.now()+","+String.format("%9.02f",RTT)+","+String.format("%9.02f",server_handling)+","+String.format("%9.02f",game_handling)+","+String.format("%9.02f",input_transport)+","+String.format("%9.02f",SP)+","+String.format("%9.02f",PSI)+","+String.format("%9.02f",AL)+","+ String.format("%9.02f",ALEnd2FCStart)+","+String.format("%9.02f",FC)+","+String.format("%9.02f",ASF)+","+String.format("%9.02f",TBCP)+","+String.format("%9.02f",CP)+","+String.format("%9.02f",decompression_time)+","+String.format("%9.02f",image_trans_ntp) +","+String.format("%9.02f", network_decompression)+","+String.format("%9.02f",clientFPS));
         }
 	//spf_last = spf_cur;
       }
@@ -216,7 +216,9 @@ public class CMsgReaderV3 extends CMsgReader {
         AL  		= (double)(nsGameLogicDone - nsTevent_pickup)*1e-6;//App Logic for frame i on CPU
         ALEnd2FCStart 	= (double)(nsBeforeCopy - nsGameLogicDone)*1e-6;//Time for FC(i-1) and AL(i+1)
         FC            	= (double)(nsAfterCopy - nsBeforeCopy)*1e-6;//Time for Frame Copy
-        ASF 		= (double)(nsTupdatebuffer_start - nsTreq_send)*1e-6;
+        //ASF 		= (double)(nsTupdatebuffer_start - nsTreq_send)*1e-6;
+        ASF 		= (double)(nsTreq_pickup - nsTreq_send)*1e-6;
+        TBCP 		= (double)(nsTupdatebuffer_start - nsTreq_pickup)*1e-6;
         CP		= ((double)nsTupdate_encoding)*1e-6;
         
         //before_game = (double)(nsTevent_pickup - nsTinput_recv)*1e-6;
@@ -354,6 +356,7 @@ public class CMsgReaderV3 extends CMsgReader {
   double ALEnd2FCStart;
   double FC;
   double ASF;
+  double TBCP;
   double server_handling;
   double before_game;
   double ReqToCompression;

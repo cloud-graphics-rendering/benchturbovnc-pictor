@@ -95,7 +95,7 @@ in this Software without prior written authorization from The Open Group.
 #include "extinit.h"
 
 extern timeTrack* timeTracker;
-extern long long gettime_nanoTime();
+extern long long gettime_nanoTime(void);
 int VncServerFrameNum = 0;
 long long VncFPS_tmp_time1 = 0;
 int timeTrackerItem=1;
@@ -662,6 +662,7 @@ ProcShmPutImage(ClientPtr client)
            timeTrackerItem = ((shmdesc->addr[8] & 0xff) << 24 | (shmdesc->addr[9] & 0xff) << 16 | 
                        (shmdesc->addr[10] & 0xff) << 8 | (shmdesc->addr[11] & 0xff)) & 0xffffffff;
            t2p_microTime_back_clear = 0xdeadbeef;
+           timeTracker[timeTrackerItem].array[7] = (long long)gettime_nanoTime();//nsTreq_pickup
            /*int i;
            for(i=0;i<NUM_ROW;i++){
               if(timeTracker[i].eventID == appreqID && timeTracker[i].valid){

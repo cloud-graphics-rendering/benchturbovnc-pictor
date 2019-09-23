@@ -57,7 +57,7 @@ extern int input_eventID;
 extern timeTrack* timeTracker;
 extern int timeheader;
 #endif
-extern long long gettime_nanoTime();
+extern long long gettime_nanoTime(void);
 
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator * xv);

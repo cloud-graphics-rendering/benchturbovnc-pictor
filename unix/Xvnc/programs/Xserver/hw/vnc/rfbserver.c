@@ -90,7 +90,7 @@ extern timeTrack* timeTracker;
 extern int timeTrackerItem;
 extern long long TotalFrameID;
 extern unsigned int t2p_microTime_back_clear;
-extern long long gettime_nanoTime();
+//extern long long gettime_nanoTime();
 #endif
 
 /*
