@@ -137,6 +137,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
         #else
         core->u.keyButtonPointer.time  = e->time;
+        timeTracker[timeheader].valid = 0;//we do not care about ButtonPress and Release Event
         #endif
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
@@ -195,6 +196,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
         #else
         core->u.keyButtonPointer.time  = e->time;
+        timeTracker[timeheader].valid = 0;//we do not care about ButtonPress and Release Event
         #endif
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
