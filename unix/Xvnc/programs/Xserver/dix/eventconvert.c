@@ -56,8 +56,9 @@
 extern int input_eventID;
 extern timeTrack* timeTracker;
 extern int timeheader;
+int last_timeheader = 0;
 #endif
-extern long long gettime_nanoTime();
+extern long long gettime_nanoTime(void);
 
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator * xv);
@@ -133,10 +134,17 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         core->u.u.type = e->type - ET_KeyPress + KeyPress;
         core->u.u.detail = e->detail.key & 0xFF;
         #ifndef STOP_BENCH
-        core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
-        timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
+        if (timeheader != last_timeheader){
+            core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
+            timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
+            last_timeheader = timeheader;
+            //fprintf(stderr, "%ld, %ld\n",timeTracker[timeheader].array[2],timeTracker[timeheader].array[3]);
+        }else{
+            core->u.keyButtonPointer.time  = e->time;
+        }
         #else
         core->u.keyButtonPointer.time  = e->time;
+        timeTracker[timeheader].valid = 0;//we do not care about ButtonPress and Release Event
         #endif
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
@@ -191,10 +199,17 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         core->u.u.type = e->type - ET_KeyPress + KeyPress;
         core->u.u.detail = e->detail.key & 0xFF;
         #ifndef STOP_BENCH
-        core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
-        timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
+        if (timeheader != last_timeheader){
+            core->u.keyButtonPointer.time  = input_eventID & 0xffffffff;
+            timeTracker[timeheader].array[3] = (long long)gettime_nanoTime();//nsTenvent_send
+            last_timeheader = timeheader;
+            //fprintf(stderr, "%ld, %ld\n",timeTracker[timeheader].array[2],timeTracker[timeheader].array[3]);
+        }else{
+            core->u.keyButtonPointer.time  = e->time;
+        }
         #else
         core->u.keyButtonPointer.time  = e->time;
+        timeTracker[timeheader].valid = 0;//we do not care about ButtonPress and Release Event
         #endif
         core->u.keyButtonPointer.rootX = e->root_x;
         core->u.keyButtonPointer.rootY = e->root_y;
