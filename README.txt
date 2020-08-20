@@ -143,39 +143,12 @@ This distribution contains software from the X Window System.  This is:
 =============
 If you make some changes to the code, you need to re-build again. The following steps is for you to reference:
 =============================
-How to compile TurboVNC
-    sudo apt install cmake
-    sudo apt install libx11-dev
-    sudo dpkg -i libjpeg-turbo-official_2.0.0_amd64.deb
-    sudo apt-get install libpam0g-dev
-    cd {build_directory}
-    cmake -G"Unix Makefiles" [additional CMake flags] {source_directory}
-    make
-    sudo make install
-    
-TurboVNC will be installed at /opt/TurboVNC
-
-You can also release your own deb package(under build directory):
-$ sudo make deb
-
-To accelerate the encoding/decoding process, you also need to install libjpeg-turbo:
-Download libgpeg-turbo.deb from source force, and install it with the following:
-$ sudo dpkg -i libjpeg-turbo.deb
-After that, it will be at /opt/libjpeg-turbo directory.
-
-If you want to uninstall a .deb package, use: 
-    sudo dpkg -r package_name
-
-If you want to install a TurboVNC without any modification: 
-https://www.turbovnc.org/
-download and sudo dpkg -i xxx.deb
-
-If you want our TurboVNC with timing measurement feature, you can use this git or download our binary from HERE(TO DO)
-
-You should install TurboVNC, Libjpeg and VirtualGL on server side. Meanwhile, you need install TurboVNC and Libjpeg on client side.
-
+Just run the two scripts: setup.sh and build64.sh.
+setup.sh: only run once.
+build64.sh: build and install our version of TurboVNC (benchvnc) on your machine automatically.
+=========================================================
 How to use this vnc?
-After installing turboVNC, Libjpeg, VirtualGl.
+After installing turboVNC, libjpeg-turbo, VirtualGl.
 1. set passwd on server.
    $ /opt/TurboVNC/bin/vncpasswd
 2. launch a session on server.
