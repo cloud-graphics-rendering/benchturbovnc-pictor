@@ -9,3 +9,5 @@ else
 	sudo dpkg -i libjpeg-turbo-official_2.0.0_amd64.deb
 	echo "configuration Done!"
 fi
+echo "You also need to install libjpeg-turbo-official_2.0.0_amd64.deb to your client machine..."
+echo "command: sudo dpkg -i libjpeg-turbo-official_2.0.0_amd64.deb"

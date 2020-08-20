@@ -20,4 +20,5 @@ else
 	sudo make install
 	mv ./turbovnc_2.1.91_amd64.deb ../
 	echo "Install TurboVNC Done!"
+	echo "Pleae install this turbovnc_2.1.91_amd64.deb to your client machine..."
 fi
