@@ -2297,7 +2297,7 @@ Bool rfbSendFramebufferUpdate(rfbClientPtr cl)
     }
     
     if(t2p_microTime_back_clear == 0xdeadbeee){
-      timeTracker[timeTrackerItem].array[9] = (long long)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
+        timeTracker[timeTrackerItem].array[9] = (long long)gettime_nanoTime() - timeTracker[timeTrackerItem].array[8];//encoding and send
     }
     t2p_microTime_back_clear = 0xdeadbeec;
 

@@ -150,16 +150,12 @@ public class CMsgReaderV3 extends CMsgReader {
             frame_num = 0;
         }
 	handler.framebufferUpdateEnd();
-	recvL_mTime_ntp = (long)System.currentTimeMillis() * 1000;
-        double backDelay_ntp = (recvL_mTime_ntp - sendL_uTime) * 1e-3;
-        //System.out.println(String.format("%x", handle_uTime));
         if(handle_uTime != 0xdeadbeefL){
+            double image_trans_ntp = ((long)System.currentTimeMillis() * 1000 - image_trans_start) * 1e-3;
             double decompression_time = ((double)decode_totalTime)*1e-6;
-            double image_trans_ntp = backDelay_ntp;
-            double network_decompression = backDelay_ntp - CP;
+            double network_decompression = image_trans_ntp - CP;
             System.out.println(java.time.LocalDateTime.now()+","+String.format("%9.02f",RTT)+","+String.format("%9.02f",server_handling)+","+String.format("%9.02f",game_handling)+","+String.format("%9.02f",input_transport)+","+String.format("%9.02f",SP)+","+String.format("%9.02f",PSI)+","+String.format("%9.02f",AL)+","+ String.format("%9.02f",ALEnd2FCStart)+","+String.format("%9.02f",FC)+","+String.format("%9.02f",ASF)+","+String.format("%9.02f",TBCP)+","+String.format("%9.02f",CP)+","+String.format("%9.02f",decompression_time)+","+String.format("%9.02f",image_trans_ntp) +","+String.format("%9.02f", network_decompression)+","+String.format("%9.02f",clientFPS));
         }
-	//spf_last = spf_cur;
       }
     }
   }
@@ -168,7 +164,7 @@ public class CMsgReaderV3 extends CMsgReader {
     is.skip(1);
     nUpdateRectsLeft = is.readU16();
     is.skip(4);
-    sendL_uTime = is.readU64();
+    image_trans_start = is.readU64();
     TotalFrameID = is.readU64();
     decode_totalTime = 0;
     //System.out.println("nUpdateRectsLeft in 1: " + nUpdateRectsLeft + " TotalFrameID: "+TotalFrameID);
@@ -340,10 +336,10 @@ public class CMsgReaderV3 extends CMsgReader {
   int nUpdateRectsLeft;
   long LastTotalFrameID;
   long TotalFrameID;
-  long sendL_uTime;
+  long image_trans_start;
   long last_fps_time;
   long frame_num;
-  long recvL_mTime_ntp;
+  //long recvL_mTime_ntp;
   long handle_uTime;
   long decode_totalTime;
   long usRect_sendTime;

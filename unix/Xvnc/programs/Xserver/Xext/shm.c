@@ -96,8 +96,8 @@ in this Software without prior written authorization from The Open Group.
 
 extern timeTrack* timeTracker;
 extern long long gettime_nanoTime(void);
-int VncServerFrameNum = 0;
-long long VncFPS_tmp_time1 = 0;
+//int VncServerFrameNum = 0;
+//long long VncFPS_tmp_time1 = 0;
 int timeTrackerItem=1;
 int appreqID=1;
 unsigned int t2p_microTime_back_clear = 0;
@@ -519,7 +519,7 @@ doShmPutImage(DrawablePtr dst, GCPtr pGC,
     }
 }
 
-struct fd_pair *headerfd=NULL;
+/*struct fd_pair *headerfd=NULL;
 FILE* getLogFilePointer(pid_t cur_pid){
      struct fd_pair *tmpfd = headerfd;
      struct fd_pair *lstfd = NULL;
@@ -553,13 +553,13 @@ FILE* getLogFilePointer(pid_t cur_pid){
           }
           return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
      }
-}
+}*/
 
 static int
 ProcShmPutImage(ClientPtr client)
 {
 
-    VncServerFrameNum++;
+    /*VncServerFrameNum++;
     long long tmp_time2=0;
     if(VncServerFrameNum >= 60){//61
           tmp_time2 = (long long)gettime_nanoTime();//nsTreq_pickup
@@ -569,15 +569,11 @@ ProcShmPutImage(ClientPtr client)
           pid_t cur_pid = getpid();
           pid_t cur_tid = syscall(SYS_gettid);
           FILE* tmpFp = getLogFilePointer(cur_pid);
-          //if(tmpFp == NULL){
-          //    fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
-          //}
-          //fprintf(tmpFp, "VncFPS %lf PID %d TID %d print-in-shm\n",VncServerFPS, cur_pid, cur_tid);
           fprintf(stderr, "VncFPS %lf PID %d TID %d print-in-shm\n",VncServerFPS, cur_pid, cur_tid);
     }
     if(VncServerFrameNum == 0){
           VncFPS_tmp_time1=tmp_time2;
-    }
+    }*/
 
     GCPtr pGC;
     DrawablePtr pDraw;
