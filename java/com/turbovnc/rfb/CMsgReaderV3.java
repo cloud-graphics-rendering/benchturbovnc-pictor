@@ -67,7 +67,6 @@ public class CMsgReaderV3 extends CMsgReader {
     }
     handler.serverInit();
     System.out.println("CurTime,RTT,ServerHandling,GameHandling,CSI,SP,PSI,AL,ALEnd2FCStart,FC,ASF,TBCP,CP,DecompressionTime,ImageTrans_ntp,Network_Decompression,clientFPS");
-    //System.out.println(java.time.LocalDateTime.now()+","+RTT+","+server_handling+","+game_handling+","+input_transport+","+SP+","+PSI+","+AL+","+ ALEnd2FCStart+","+FC+","+ASF+","+CP+","+decompression_time+","+image_trans_ntp +","+network_decompression+","+clientFPS);
   }
 
   public void readMsg() {
@@ -100,10 +99,6 @@ public class CMsgReaderV3 extends CMsgReader {
       int w = is.readU16();
       int h = is.readU16();
       int encoding = is.readS32();
-      //int pad_nouse= is.readS32();
-      //is.skip(4);
-      //usRect_sendTime = is.readS64();
-      //System.out.println("x: " + x + "y: " + y + "w: " + w + "h: " + h);
 
       switch (encoding) {
         case RFB.ENCODING_NEW_FB_SIZE:
@@ -137,7 +132,6 @@ public class CMsgReaderV3 extends CMsgReader {
       decode_totalTime += decode_time;
 
       nUpdateRectsLeft--;
-      //System.out.println("nUpdateRectsLeft in 2: " + nUpdateRectsLeft);
       if (nUpdateRectsLeft == 0){
         if(TotalFrameID != LastTotalFrameID){
             frame_num++;
@@ -167,15 +161,6 @@ public class CMsgReaderV3 extends CMsgReader {
     image_trans_start = is.readU64();
     TotalFrameID = is.readU64();
     decode_totalTime = 0;
-    //System.out.println("nUpdateRectsLeft in 1: " + nUpdateRectsLeft + " TotalFrameID: "+TotalFrameID);
-    //System.out.println("handle_uTime:" + Long.toHexString(handle_uTime_tmp) + "usec");
-    // higher 32bits is 0xdeadbeef, which means the data is valid.     
-    //if(handle_uTime_tmp == 0xdeadbeefL){
-    //	handle_uTime = handle_uTime_tmp;
-    //}else{
-    //	handle_uTime = 0xdeadbeefL;
-    //}
-    
     handler.framebufferUpdateStart();
   }
 
@@ -339,10 +324,9 @@ public class CMsgReaderV3 extends CMsgReader {
   long image_trans_start;
   long last_fps_time;
   long frame_num;
-  //long recvL_mTime_ntp;
   long handle_uTime;
   long decode_totalTime;
-  long usRect_sendTime;
+  //long usRect_sendTime;
   double clientFPS;
 
   double RTT;
@@ -354,8 +338,8 @@ public class CMsgReaderV3 extends CMsgReader {
   double ASF;
   double TBCP;
   double server_handling;
-  double before_game;
-  double ReqToCompression;
+  //double before_game;
+  //double ReqToCompression;
   double game_handling;
   double input_transport;
   double CP;
