@@ -171,7 +171,6 @@ dix_main(int argc, char *argv[], char *envp[])
     strcat(filename, posfix);
     key_t key = ftok(filename, 65);
     fprintf(stderr, "filename:%s, shm key: %d\n", filename, key);
-    //key_t key = ftok("shmfile", 65);
     int shmid = shmget(key, NUM_ROW*sizeof(timeTrack), 0666|IPC_CREAT);
     timeTracker = (timeTrack*)shmat(shmid, (void*)0, 0);
     fprintf(stderr, "createshared memory for time tracking and initialize it, addr: %p, size: %d\n",timeTracker, NUM_ROW*sizeof(timeTrack));
