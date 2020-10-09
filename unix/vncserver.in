@@ -185,6 +185,8 @@ else
   TVNC_WM=`which "$TVNC_WM" 2>/dev/null`
 fi
 if [ "$TVNC_WM" != "" ]; then
+  xterm -maximized -ls -title "xterm" &
+  x-window-manager &
   /usr/bin/xterm -maximized -ls -title "xterm" & twm
   if [ -x "$TVNC_WM" ]; then
     exec $TVNC_SSHAGENT $TVNC_VGLRUN "$TVNC_WM"
